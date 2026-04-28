@@ -1,0 +1,10 @@
+.ssh_tunnel
+models
+schemas
+services
+web
+__pycache__
+.file_versions
+credentials
+/.env
+/env
