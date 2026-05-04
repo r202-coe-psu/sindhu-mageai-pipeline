@@ -32,7 +32,7 @@ blocks:
   upstream_blocks:
   - thaiwater_stations_loader
   uuid: thaiwater_stations_transformer
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
