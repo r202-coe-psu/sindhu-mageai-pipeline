@@ -9,69 +9,78 @@ if "transformer" not in globals():
 @transformer
 def transform(data, *args, **kwargs):
     print("### Starting Process Data")
-    station_outputs = dict()
+    metric_outputs = dict()
 
-    import pprint
-    pprint.pprint(data[0])
+    # import pprint
+    # pprint.pprint(data[741])
 
-    for d in data:
+    for i, d in enumerate(data):
         attribute_outputs = []
+        waterlevel_datetime = d.get("waterlevel_datetime", None)
+        waterlevel_m = d.get("waterlevel_m", None)
+        waterlevel_msl = d.get("waterlevel_msl", None)
+        diff_wl_bank = d.get("diff_wl_bank", None)
+        diff_wl_bank_text = d.get("diff_wl_bank_text", None)
+        storage_percent = d.get("storage_percent", None)
+        discharge = d.get("discharge", None)
+        flow_rate = d.get("flow_rate", None)
+
+        # format datetime e.g. 2026-05-04 16:20
+        waterlevel_datetime = datetime.strptime(waterlevel_datetime, "%Y-%m-%d %H:%M")
+
+        # process diff data
+        # ต่ำกว่าตลิ่ง -> negative
+        # ล้นตลิ่ง -> postive
+        # ถ้าไม่มีข้อมูล diff -> 0
+        if diff_wl_bank:
+            diff_wl_bank = float(diff_wl_bank)
+            if diff_wl_bank_text.startswith("ต่ำกว่าตลิ่ง"):
+                diff_wl_bank = -diff_wl_bank
+            elif diff_wl_bank_text.startswith("ล้นตลิ่ง"):
+                diff_wl_bank = diff_wl_bank
+            else:
+                diff_wl_bank = 0
+        # ensure numeric value
+        if waterlevel_m:
+            waterlevel_m = float(waterlevel_m)
+        if waterlevel_msl:  # msl is mean sea level,
+            waterlevel_msl = float(waterlevel_msl)
+        if discharge:
+            # print(
+            #     f"(index: {i}, station: {d['station']['id']})discharge: {discharge} ({type(discharge)})"
+            # )
+            discharge = float(discharge)
+        if flow_rate:
+            # print(
+            #     f"(index: {i}, station: {d['station']['id']})flow_rate: {flow_rate} ({type(flow_rate)})"
+            # )
+            flow_rate = float(flow_rate)
+
         station = d.get("station", {})
         if station:
             code = str(station.get("id")).strip()
             name = station.get("tele_station_name", {})
-            name_en = name.get("en", "").strip()
             name_th = name.get("th", "").strip()
-            station_type = station.get("tele_station_type", "").strip()
-            longitude = station.get("tele_station_long")
-            latitude = station.get("tele_station_lat")
-            url = station.get("url", "https://thaiwater.net").strip()
             source = "thaiwater"
-
-            # metadata
-            geocode = d.get("geocode", {})
-
-            tumbon_code = geocode.get("tumbon_code", "").strip()
-            tumbon_name = geocode.get("tumbon_name", {})
-            tumbon_name_en = tumbon_name.get("en", "").strip()
-            tumbon_name_th = tumbon_name.get("th", "").strip()
-
-            amphoe_code = geocode.get("amphoe_code", "").strip()
-            amphoe_name = geocode.get("amphoe_name", {})
-            amphoe_name_en = amphoe_name.get("en", "").strip()
-            amphoe_name_th = amphoe_name.get("th", "").strip()
-
-            province_code = geocode.get("province_code", "").strip()
-            province_name = geocode.get("province_name", {})
-            province_name_en = province_name.get("en", "").strip()
-            province_name_th = province_name.get("th", "").strip()
 
             attribute_outputs.append(
                 {
                     "code": code,
-                    "name": name_en,
                     "name_th": name_th,
-                    "station_type": station_type,
-                    "longitude": longitude,
-                    "latitude": latitude,
-                    "url": url,
                     "source": source,
-                    # metadata
-                    "tumbon_code": tumbon_code,
-                    "tumbon_name_en": tumbon_name_en,
-                    "tumbon_name_th": tumbon_name_th,
-                    "amphoe_code": amphoe_code,
-                    "amphoe_name_en": amphoe_name_en,
-                    "amphoe_name_th": amphoe_name_th,
-                    "province_code": province_code,
-                    "province_name_en": province_name_en,
-                    "province_name_th": province_name_th,
+                    "waterlevel_datetime": waterlevel_datetime,
+                    "waterlevel_m": waterlevel_m,
+                    "waterlevel_msl": waterlevel_msl,
+                    "diff_wl_bank": diff_wl_bank,
+                    "storage_percent": storage_percent,
+                    "discharge": discharge,
+                    "flow_rate": flow_rate,
                 }
             )
 
             if attribute_outputs:
-                station_outputs[code] = attribute_outputs
+                metric_outputs[code] = attribute_outputs
 
-    print(f"\nTotal stations:", len(station_outputs))
+    print(f"\nTotal stations:", len(metric_outputs))
 
-    return station_outputs
+    return metric_outputs

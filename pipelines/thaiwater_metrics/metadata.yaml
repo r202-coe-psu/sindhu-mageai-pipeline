@@ -38,7 +38,7 @@ blocks:
   upstream_blocks:
   - thaiwater_metrics_loader
   uuid: thaiwater_metrics_transformer
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration:
     file_path: data_exporters/thaiwater_metrics_exporter.py
