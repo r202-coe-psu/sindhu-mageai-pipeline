@@ -26,13 +26,13 @@ blocks:
   language: python
   name: thaiwater_stations_transformer
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: transformer
   upstream_blocks:
   - thaiwater_stations_loader
   uuid: thaiwater_stations_transformer
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks: []

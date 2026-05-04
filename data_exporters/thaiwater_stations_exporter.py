@@ -10,14 +10,94 @@ if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
 
-async def insert_data(air4thai_stations):
+async def insert_data(stations):
     print("### Initialize Beanie")
     await models.init_default_beanie_client()
 
     stations_to_save = []
     print("### Start insert data")
-    
+    for code, station in stations.items():
+        for data in station:
+            name = data.pop("name")
+            name_th = data.pop("name_th")
+            station_code = data.pop("code")
+            source = data.pop("source")
+            url = data.pop("url")
+            station_type = data.pop("station_type")
+            longitude = data.pop("longitude")
+            latitude = data.pop("latitude")
+            created_date = datetime.datetime.now(datetime.timezone.utc)
+            updated_date = datetime.datetime.now(datetime.timezone.utc)
 
+            # metadata
+            tumbon_code = data.pop("tumbon_code")
+            tumbon_name_en = data.pop("tumbon_name_en")
+            tumbon_name_th = data.pop("tumbon_name_th")
+
+            amphoe_code = data.pop("amphoe_code")
+            amphoe_name_en = data.pop("amphoe_name_en")
+            amphoe_name_th =data.pop("amphoe_name_th")
+
+            province_code = data.pop("province_code")
+            province_name_en = data.pop("province_name_en")
+            province_name_th = data.pop("province_name_th")
+        
+        metadata = dict(
+            tumbon_code=tumbon_code,
+            tumbon_name_en=tumbon_name_en,
+            tumbon_name_th=tumbon_name_th,
+            amphoe_code=amphoe_code,
+            amphoe_name_en=amphoe_name_en,
+            amphoe_name_th=amphoe_name_th,
+            province_code=province_code,
+            province_name_en=province_name_en,
+            province_name_th=province_name_th,
+        )
+
+        exists_name_th_station = (
+            await models.Station.find(
+                models.Station.name_th == name_th,
+            )
+            .sort(-models.Station.updated_date)
+            .first_or_none()
+        )
+        if exists_name_th_station:
+            print(f"[>] Updating station ({station_code}) {name_th}")
+            exists_name_th_station.name = name
+            exists_name_th_station.name_th = name_th
+            exists_name_th_station.code = station_code
+            exists_name_th_station.source = source
+            exists_name_th_station.url = url
+            exists_name_th_station.metadata = metadata
+            exists_name_th_station.coordinates = bases.GeoObject(
+                coordinates=[longitude, latitude]
+            )
+            exists_name_th_station.status = "active"  # always active after use
+            exists_name_th_station.updated_date = datetime.datetime.now(
+                datetime.timezone.utc
+            )
+            await exists_name_th_station.save()
+            continue
+
+        # Otherwise It's new station
+        print(f"[+] New Station ({station_code}) {name_th}")
+        station = models.Station(
+            name=name,
+            name_th=name_th,
+            code=station_code,
+            source=source,
+            url=url,
+            metadata=metadata,
+            coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
+            created_date=created_date,
+            updated_date=updated_date,
+            status="active",
+        )
+
+        stations_to_save.append(station)
+
+    if stations_to_save:
+        await models.Station.insert_many(stations_to_save)
 
     print("### Success insert data:", len(stations_to_save))
 

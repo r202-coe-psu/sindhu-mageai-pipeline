@@ -5,56 +5,73 @@ from datetime import datetime, timedelta
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 
+
 @transformer
 def transform(data, *args, **kwargs):
-    
-    output = dict()
-    for station_code, datas in station_datas.items():
+    print("### Starting Process Data")
+    station_outputs = dict()
 
-        transform_output = []
-        for data in datas:
-            station_name = data.get("nameEN")
-            if station_name:
-                station_name = station_name.strip()
+    # import pprint
+    # pprint.pprint(data[0])
 
-            name_th = data.get("nameTH")
-            if name_th:
-                name_th = name_th.strip()
+    for d in data:
+        attribute_outputs = []
+        station = d.get("station", {})
+        if station:
+            code = str(station.get("id")).strip()
+            name = station.get("tele_station_name", {})
+            name_en = name.get("en", "").strip()
+            name_th = name.get("th", "").strip()
+            station_type = station.get("tele_station_type", "").strip()
+            longitude = station.get("tele_station_long")
+            latitude = station.get("tele_station_lat")
+            url = station.get("url", "https://thaiwater.net").strip()
+            source = "thaiwater"
 
-            area_en = data.get("areaEN")
-            if area_en:
-                area_en = area_en.strip()
+            # metadata
+            geocode = d.get("geocode", {})
 
-            area_th = data.get("areaTH")
-            if area_th:
-                area_th = area_th.strip()
+            tumbon_code = geocode.get("tumbon_code", "").strip()
+            tumbon_name = geocode.get("tumbon_name", {})
+            tumbon_name_en = tumbon_name.get("en", "").strip()
+            tumbon_name_th = tumbon_name.get("th", "").strip()
 
-            station_type = data.get("stationType")
-            if station_type:
-                station_type = station_type.strip()
+            amphoe_code = geocode.get("amphoe_code", "").strip()
+            amphoe_name = geocode.get("amphoe_name", {})
+            amphoe_name_en = amphoe_name.get("en", "").strip()
+            amphoe_name_th = amphoe_name.get("th", "").strip()
 
-            longitude = data.get("long")
-            latitude = data.get("lat")
-            status = data.get("status")
-            url = "http://air4thai.com/"
-            source = "air4thai"
+            province_code = geocode.get("province_code", "").strip()
+            province_name = geocode.get("province_name", {})
+            province_name_en = province_name.get("en", "").strip()
+            province_name_th = province_name.get("th", "").strip()
 
-            transform_output.append(
+            attribute_outputs.append(
                 {
-                    "name": station_name,
+                    "code": code,
+                    "name": name_en,
                     "name_th": name_th,
-                    "url": url,
-                    "source": source,
-                    "area_en": area_en,
-                    "area_th": area_th,
                     "station_type": station_type,
-                    "is_gas": status,
                     "longitude": longitude,
                     "latitude": latitude,
+                    "url": url,
+                    "source": source,
+                    # metadata
+                    "tumbon_code": tumbon_code,
+                    "tumbon_name_en": tumbon_name_en,
+                    "tumbon_name_th": tumbon_name_th,
+                    "amphoe_code": amphoe_code,
+                    "amphoe_name_en": amphoe_name_en,
+                    "amphoe_name_th": amphoe_name_th,
+                    "province_code": province_code,
+                    "province_name_en": province_name_en,
+                    "province_name_th": province_name_th,
                 }
             )
 
-        if transform_output:
-            output[station_code] = transform_output
+            if attribute_outputs:
+                station_outputs[code] = attribute_outputs
 
-    return output
+    print(f"\nTotal stations:", len(station_outputs))
+
+    return station_outputs
