@@ -45,7 +45,7 @@ blocks:
   language: python
   name: dwr_stations_exporter
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:

@@ -1,9 +1,11 @@
 import datetime
 import asyncio
+import nest_asyncio
 
 from sindhu import models
 from sindhu.schemas import bases
 
+nest_asyncio.apply() 
 if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
