@@ -102,14 +102,14 @@ def transform_rid_data(api_responses, *args, **kwargs):
             all_metrics.extend(explode_to_metrics(raw_record))
     
     success_count = len(api_responses) - len(failed_stations)
-    print(f"\n📊 รวม metric records: {len(all_metrics):,}")
-    print(f"📍 สถานีสำเร็จ: {success_count} / {len(api_responses)}")
+    print(f"\nรวม metric records: {len(all_metrics):,}")
+    print(f"สถานีสำเร็จ: {success_count} / {len(api_responses)}")
     
     if failed_stations:
-        print(f"⚠️ สถานีล้มเหลว: {failed_stations}")
+        print(f"สถานีล้มเหลว: {failed_stations}")
     
     if all_metrics:
-        print(f"\n📄 ตัวอย่าง 2 records แรก:")
+        print(f"\nตัวอย่าง 2 records แรก:")
         import pprint
         pprint.pprint(all_metrics[:2])
     

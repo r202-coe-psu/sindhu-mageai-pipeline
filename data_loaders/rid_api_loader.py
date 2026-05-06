@@ -52,8 +52,8 @@ async def fetch_one_station(client, station_code, site_time, semaphore):
 async def fetch_all_stations(station_codes):
     # สร้าง site_time เป็นวันที่ปัจจุบัน รูปแบบ MM/DD/YYYY
     site_time = datetime.now().strftime("%m/%d/%Y")
-    print(f"📅 ดึงข้อมูลของวันที่: {site_time}")
-    print(f"🚀 จำนวนสถานี: {len(station_codes)} (ยิงพร้อมกัน {CONCURRENCY_LIMIT} ตัว)")
+    print(f"ดึงข้อมูลของวันที่: {site_time}")
+    print(f"จำนวนสถานี: {len(station_codes)} (ยิงพร้อมกัน {CONCURRENCY_LIMIT} ตัว)")
 
     semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
 
@@ -67,7 +67,7 @@ async def fetch_all_stations(station_codes):
     # สรุปผล
     success = sum(1 for r in results if r["status_code"] == 200)
     failed = len(results) - success
-    print(f"✅ สำเร็จ: {success} | ❌ ล้มเหลว: {failed}")
+    print(f"สำเร็จ: {success} | ล้มเหลว: {failed}")
 
     if failed > 0:
         failed_codes = [r["station_code"] for r in results if r["status_code"] != 200]
@@ -79,15 +79,15 @@ async def fetch_all_stations(station_codes):
 @data_loader
 def fetch_station_plots(station_codes, *args, **kwargs):
     if not station_codes:
-        print("⚠️ ไม่มี station codes เข้ามา — ข้ามการยิง API")
+        print("ไม่มี station codes เข้ามา — ข้ามการยิง API")
         return []
     
     results = asyncio.run(fetch_all_stations(station_codes))
     
-    # 👇 ดูตัวอย่าง raw_text ตัวแรกที่สำเร็จ
+    # ดูตัวอย่าง raw_text ตัวแรกที่สำเร็จ
     first_success = next((r for r in results if r["status_code"] == 200), None)
     if first_success:
-        print(f"\n📄 ตัวอย่าง response จาก {first_success['station_code']}:")
+        print(f"\nตัวอย่าง response จาก {first_success['station_code']}:")
         print(first_success["raw_text"][:500])  # 500 ตัวอักษรแรก
     
     return results

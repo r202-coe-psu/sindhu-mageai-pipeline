@@ -34,7 +34,7 @@ def fetch_rid_station_codes():
         print(f"Status Code: {response.status_code}")
 
         if response.status_code != 200:
-            print("❌ Server ตอบกลับมาแบบมี Error:")
+            print("Server ตอบกลับมาแบบมี Error:")
             print(response.text)
             return station_codes
 
@@ -42,7 +42,7 @@ def fetch_rid_station_codes():
         table = soup.find('table')
 
         if not table:
-            print("❌ ไม่พบตารางในหน้าเว็บ")
+            print("ไม่พบตารางในหน้าเว็บ")
             return station_codes
 
         rows = table.find_all('tr')
@@ -65,7 +65,7 @@ def fetch_rid_station_codes():
             if station_code:
                 station_codes.append(station_code)
 
-        print(f"✅ ดึงรหัสสถานีสำเร็จ ทั้งหมด {len(station_codes)} สถานี")
+        print(f"ดึงรหัสสถานีสำเร็จ ทั้งหมด {len(station_codes)} สถานี")
 
     except Exception as e:
         print(f"เกิดข้อผิดพลาดในการเชื่อมต่อ: {e}")
@@ -76,5 +76,5 @@ def fetch_rid_station_codes():
 @data_loader
 def load_data_from_rid(*args, **kwargs):
     codes = fetch_rid_station_codes()
-    print(f"🔍 รหัสสถานีทั้งหมด : {codes[:]}")
+    print(f"รหัสสถานีทั้งหมด : {codes[:]}")
     return codes
