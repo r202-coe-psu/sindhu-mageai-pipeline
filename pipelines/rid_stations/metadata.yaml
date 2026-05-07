@@ -3,7 +3,7 @@ blocks:
   color: null
   configuration: {}
   downstream_blocks:
-  - rid_api_loader
+  - rid_station_loader
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -17,39 +17,44 @@ blocks:
   uuid: rid_data_loader
 - all_upstream_blocks_executed: true
   color: null
-  configuration: {}
-  downstream_blocks:
-  - rid_transformer
+  configuration:
+    file_path: data_loaders/rid_station_loader.py
+    file_source:
+      path: data_loaders/rid_station_loader.py
+  downstream_blocks: []
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: rid_api_loader
+  name: rid_station_loader
   retry_config: null
   status: executed
   timeout: null
   type: data_loader
   upstream_blocks:
   - rid_data_loader
-  uuid: rid_api_loader
+  uuid: rid_station_loader
 - all_upstream_blocks_executed: true
   color: null
-  configuration: {}
+  configuration:
+    file_path: transformers/rid_stations_transformer.py
+    file_source:
+      path: transformers/rid_stations_transformer.py
   downstream_blocks:
   - rid_data_exporter
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: rid_transformer
+  name: rid_stations_transformer
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: transformer
   upstream_blocks:
-  - rid_api_loader
-  uuid: rid_transformer
-- all_upstream_blocks_executed: true
+  - rid_station_loader
+  uuid: rid_stations_transformer
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -63,7 +68,7 @@ blocks:
   timeout: null
   type: data_exporter
   upstream_blocks:
-  - rid_transformer
+  - rid_stations_transformer
   uuid: rid_data_exporter
 cache_block_output_in_memory: false
 callbacks: []

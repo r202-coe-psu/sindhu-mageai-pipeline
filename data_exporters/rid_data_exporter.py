@@ -1,92 +1,83 @@
+import datetime
+from typing import List
 import asyncio
-import nest_asyncio
-from typing import List, Dict
+import bson
 
 from sindhu import models
+from sindhu.schemas import bases
 
-if 'data_exporter' not in globals():
+if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
-nest_asyncio.apply()
 
-
-async def insert_metrics(metrics: List[Dict]) -> Dict:
-    """
-    Insert metrics เข้า time series collection
-    Strategy: query existing → filter ออก → bulk insert ใหม่
-    """
+async def insert_data(stations):
     print("### Initialize Beanie")
     await models.init_default_beanie_client()
-    
-    if not metrics:
-        return {"inserted": 0, "skipped": 0}
-    
-    # หาช่วงเวลาของ batch นี้ เพื่อ query existing แค่ window ที่เกี่ยวข้อง
-    timestamps = [m["timestamp"] for m in metrics]
-    min_ts = min(timestamps)
-    max_ts = max(timestamps)
-    
-    print(f"ช่วงเวลาของ batch: {min_ts} → {max_ts}")
-    print("Query existing records ในช่วงนี้...")
-    
-    # 👇 ใช้ Beanie find() แทน motor collection
-    existing_docs = await models.Metric.find(
-        {
-            "timestamp": {"$gte": min_ts, "$lte": max_ts},
-            "metadata.source": "rid",
-        }
-    ).to_list()
-    
-    # สร้าง set ของ key (timestamp, station_code, metric_type) ที่มีอยู่แล้ว
-    existing_keys = set()
-    for doc in existing_docs:
-        meta = doc.metadata or {}
-        key = (
-            doc.timestamp,
-            meta.get("station_code"),
-            meta.get("metric_type"),
+
+    stations_to_save = []
+    print("### Start insert data")
+    for code, station in stations.items():
+        for data in station:
+            name = data.pop("name_en")
+            name_th = data.pop("name_th")
+            station_code = data.pop("code")
+            source = data.pop("source")
+            url = data.pop("url")
+            station_type = data.pop("station_type")
+            location = data.pop("location")
+            basin = data.pop("basin")
+            longitude = data.pop("longitude")
+            latitude = data.pop("latitude")
+            created_date = datetime.datetime.now(datetime.timezone.utc)
+            updated_date = datetime.datetime.now(datetime.timezone.utc)
+
+        exists_name_th_station = (
+            await models.Station.find(
+                models.Station.name_th == name_th,
+            )
+            .sort(-models.Station.updated_date)
+            .first_or_none()
         )
-        existing_keys.add(key)
-    
-    print(f"   เจอ {len(existing_keys):,} records ที่มีอยู่แล้ว")
-    
-    # filter เฉพาะ records ใหม่
-    new_metrics_data = []
-    for m in metrics:
-        key = (
-            m["timestamp"],
-            m["metadata"]["station_code"],
-            m["metadata"]["metric_type"],
+        if exists_name_th_station:
+            print(f"[>] Updating station ({station_code}) {name_th}")
+            exists_name_th_station.name = name
+            exists_name_th_station.name_th = name_th
+            exists_name_th_station.code = station_code
+            exists_name_th_station.source = source
+            exists_name_th_station.url = url
+            exists_name_th_station.coordinates = bases.GeoObject(
+                coordinates=[longitude, latitude]
+            )
+            exists_name_th_station.status = "active"  # always active after use
+            exists_name_th_station.updated_date = datetime.datetime.now(
+                datetime.timezone.utc
+            )
+            await exists_name_th_station.save()
+            continue
+
+        # Otherwise It's new station
+        print(f"[+] New Station ({station_code}) {name_th}")
+        station = models.Station(
+            name=name,
+            name_th=name_th,
+            code=station_code,
+            source=source,
+            url=url,
+            coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
+            created_date=created_date,
+            updated_date=updated_date,
+            status="active",
         )
-        if key not in existing_keys:
-            new_metrics_data.append(m)
-    
-    skipped = len(metrics) - len(new_metrics_data)
-    print(f"จะ insert ใหม่: {len(new_metrics_data):,}")
-    print(f"ข้าม (มีอยู่แล้ว): {skipped:,}")
-    
-    if not new_metrics_data:
-        return {"inserted": 0, "skipped": skipped}
-    
-    # แปลง dict เป็น Metric document ก่อน insert
-    print(f"### Building Metric documents...")
-    metric_docs = [models.Metric(**m) for m in new_metrics_data]
-    
-    # Bulk insert ผ่าน Beanie API
-    print(f"### Inserting {len(metric_docs):,} records...")
-    await models.Metric.insert_many(metric_docs)
-    
-    summary = {"inserted": len(metric_docs), "skipped": skipped}
-    print(f"Insert สำเร็จ: {summary['inserted']:,}")
-    
-    return summary
+
+        stations_to_save.append(station)
+
+    if stations_to_save:
+        await models.Station.insert_many(stations_to_save)
+
+    print("### Success insert data:", len(stations_to_save))
 
 
 @data_exporter
-def export_metrics_to_mongodb(metrics: List[Dict], **kwargs) -> None:
-    if not metrics:
-        print("️ไม่มี metrics เข้ามา — ข้ามการ export")
-        return
-    
-    asyncio.run(insert_metrics(metrics))
+def export_data_to_mongodb(stations, **kwargs) -> None:
+    asyncio.run(insert_data(stations))
     print("### Done Process")
