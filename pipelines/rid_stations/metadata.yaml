@@ -48,13 +48,13 @@ blocks:
   language: python
   name: rid_stations_transformer
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: transformer
   upstream_blocks:
   - rid_station_loader
   uuid: rid_stations_transformer
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks: []
