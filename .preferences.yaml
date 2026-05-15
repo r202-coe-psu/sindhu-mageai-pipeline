@@ -1,15 +1,2 @@
 sync_config:
-  access_token_secret_name: null
-  auth_type: null
-  branch: null
-  email: 6810110402@psu.ac.th
-  remote_repo_link: https://github.com/r202-coe-psu/sindhu-mageai-pipeline.git
   repo_path: /home/src/sindhu
-  ssh_private_key_secret_name: null
-  ssh_public_key_secret_name: null
-  sync_on_executor_start: null
-  sync_on_pipeline_run: null
-  sync_on_start: null
-  sync_submodules: null
-  type: null
-  username: psu6810110402
