@@ -7,7 +7,6 @@ import asyncio
 import nest_asyncio
 import requests
 import json
-from playwright.async_api import async_playwright
 
 if 'data_loader' not in globals():
     from mage_ai.data_preparation.decorators import data_loader

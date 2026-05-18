@@ -5,7 +5,7 @@ import nest_asyncio
 from sindhu import models
 from sindhu.schemas import bases
 
-nest_asyncio.apply() 
+nest_asyncio.apply()
 if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
@@ -39,27 +39,8 @@ async def insert_data(stations):
             amphoe_name_th   = data.pop("amphoe_name_th")
             province_name_th = data.pop("province_name_th")
 
-            rain    = data.pop("rain")
-            rain07h = data.pop("rain07h")
-            rain12h = data.pop("rain12h")
-            wl      = data.pop("wl")
-            wl07h   = data.pop("wl07h")
-            temp    = data.pop("temp")
-            soil    = data.pop("soil")
-            soil07h = data.pop("soil07h")
-
-            status       = data.pop("status")
-            warn         = data.pop("warn")
-            warning_type = data.pop("warning_type")
-            alert_min    = data.pop("alert_min")
-            alert_max    = data.pop("alert_max")
-
-            date        = data.pop("date")
-            report_date = data.pop("report_date")
-
             created_date = datetime.datetime.now(datetime.timezone.utc)
             updated_date = datetime.datetime.now(datetime.timezone.utc)
-
 
             metadata = dict(
                 station_type=station_type,
@@ -72,21 +53,6 @@ async def insert_data(stations):
                 main_basin=main_basin,
                 sub_basin=sub_basin,
                 sub_station=sub_station,
-                rain=rain,
-                rain07h=rain07h,
-                rain12h=rain12h,
-                wl=wl,
-                wl07h=wl07h,
-                temp=temp,
-                soil=soil,
-                soil07h=soil07h,
-                status=status,
-                warn=warn,
-                warning_type=warning_type,
-                alert_min=alert_min,
-                alert_max=alert_max,
-                date=date,
-                report_date=report_date,
             )
 
         exists_station = (
@@ -99,23 +65,22 @@ async def insert_data(stations):
 
         if exists_station:
             print(f"[>] Updating station ({station_code}) {name_th}")
-            exists_station.name         = name
-            exists_station.name_th      = name_th
-            exists_station.code         = station_code
-            exists_station.source       = source
-            exists_station.url          = url
-            exists_station.metadata     = metadata
-            exists_station.coordinates  = bases.GeoObject(
+            exists_station.name        = name
+            exists_station.name_th     = name_th
+            exists_station.code        = station_code
+            exists_station.source      = source
+            exists_station.url         = url
+            exists_station.metadata    = metadata
+            exists_station.coordinates = bases.GeoObject(
                 coordinates=[longitude, latitude]
             )
-            exists_station.status       = "active" # always active after use
+            exists_station.status       = "active"
             exists_station.updated_date = datetime.datetime.now(
                 datetime.timezone.utc
             )
             await exists_station.save()
             continue
 
-        # Otherwise It's new station
         print(f"[+] New Station ({station_code}) {name_th}")
         station = models.Station(
             name=name,
