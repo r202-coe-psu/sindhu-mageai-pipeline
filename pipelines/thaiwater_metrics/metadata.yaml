@@ -59,7 +59,11 @@ blocks:
   uuid: thaiwater_metrics_exporter
 cache_block_output_in_memory: false
 callbacks: []
-concurrency_config: {}
+concurrency_config:
+  block_run_limit: 1
+  on_pipeline_run_limit_reached: wait
+  pipeline_run_limit: 1
+  pipeline_run_limit_all_triggers: 1
 conditionals: []
 created_at: '2026-05-04 08:37:01.903417+00:00'
 data_integration: null

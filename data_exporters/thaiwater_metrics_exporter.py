@@ -27,7 +27,7 @@ async def insert_data(metrics_stations):
             .first_or_none()
         )
         if not station:
-            print(f"[!] Station {code} {metrics_station['name_th']} not found")
+            print(f"[!] Station {code} {metrics_station[0]['name_th']} not found")
             continue
 
         exist_counter = 0
