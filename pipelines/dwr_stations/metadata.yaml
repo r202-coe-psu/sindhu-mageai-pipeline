@@ -29,13 +29,13 @@ blocks:
   language: python
   name: dwr_stations_transformer
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: transformer
   upstream_blocks:
   - dwr_stations_loader
   uuid: dwr_stations_transformer
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks: []

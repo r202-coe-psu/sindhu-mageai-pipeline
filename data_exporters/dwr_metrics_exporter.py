@@ -42,7 +42,7 @@ async def insert_data(metrics_stations):
             timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
 
             for parameter, value in data.items():
-                if not value:
+                if value is None:
                     continue
 
                 exists_metric = await models.Metric.find_one(

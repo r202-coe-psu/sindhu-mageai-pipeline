@@ -6,28 +6,23 @@ if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 
 
-WL_TYPES = {"wl"}
-
-
 @transformer
 def transform(data, *args, **kwargs):
-    print("### Starting Process STN WL Data")
+    print("### Starting Process STN Data")
     metric_outputs = dict()
 
     for i, d in enumerate(data):
         attribute_outputs = []
 
-        stn_type = d.get("stn_type", "").strip()
         date_str = d.get("date", None)
-        rain = d.get("rain", None)
-        rain12h = d.get("rain12h", None)
-        rain07h = d.get("rain07h", None)
-        temp = d.get("temp", None)
-        wl = d.get("wl", None)
-        wl07h = d.get("wl07h", None)
-
-        if stn_type not in WL_TYPES:
-            continue
+        rain     = d.get("rain", None)
+        rain12h  = d.get("rain12h", None)
+        rain07h  = d.get("rain07h", None)
+        temp     = d.get("temp", None)
+        wl       = d.get("wl", None)
+        wl07h    = d.get("wl07h", None)
+        soil     = d.get("soil", None)
+        soil07h  = d.get("soil07h", None)
 
         # format datetime e.g. "18/05/26 03:00 น." -> "2026-05-18T03:00:00"
         waterlevel_datetime = None
@@ -49,30 +44,34 @@ def transform(data, *args, **kwargs):
             except (ValueError, TypeError):
                 return None
 
-        rain = to_float(rain)
+        rain    = to_float(rain)
         rain12h = to_float(rain12h)
         rain07h = to_float(rain07h)
-        temp = to_float(temp)
-        wl = to_float(wl)
-        wl07h = to_float(wl07h)
+        temp    = to_float(temp)
+        wl      = to_float(wl)
+        wl07h   = to_float(wl07h)
+        soil    = to_float(soil)
+        soil07h = to_float(soil07h)
 
-        code = str(d.get("stn", "")).strip()
+        code    = str(d.get("stn", "")).strip()
         name_th = str(d.get("name", "")).strip()
-        source = "dwr"
+        source  = "dwr"
 
         if code:
             attribute_outputs.append(
                 {
-                    "code": code,
-                    "name_th": name_th,
-                    "source": source,
+                    "code":               code,
+                    "name_th":            name_th,
+                    "source":             source,
                     "waterlevel_datetime": waterlevel_datetime,
-                    "rain": rain,
+                    "rain":    rain,
                     "rain12h": rain12h,
                     "rain07h": rain07h,
-                    "temp": temp,
-                    "wl": wl,
-                    "wl07h": wl07h,
+                    "temp":    temp,
+                    "wl":      wl,
+                    "wl07h":   wl07h,
+                    "soil":    soil,
+                    "soil07h": soil07h,
                 }
             )
 
