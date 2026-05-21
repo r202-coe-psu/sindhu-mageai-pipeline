@@ -20,6 +20,7 @@ REQUEST_TIMEOUT = 15
 
 # Mapping element ID → field name ที่จะใช้ในผลลัพธ์
 FIELD_MAP = {
+    "MainContent_lblName":            "name_en",
     "MainContent_lblSubMaster":       "name_th",
     "MainContent_lblRiverName":       "basin",
     "MainContent_lblStationPicLat":   "latitude",
@@ -45,7 +46,8 @@ def parse_station_html(html, station_code):
     """parse HTML page หนึ่งสถานี → dict ของข้อมูลจำเพาะ"""
     soup = BeautifulSoup(html, 'html.parser')
     
-    result = {"station_code": station_code}
+    result = {"station_code": station_code,
+              "url": f"{BASE_URL}?IdCode=08:{station_code}"}
     for elem_id, field_name in FIELD_MAP.items():
         result[field_name] = extract_text(soup, elem_id)
     
