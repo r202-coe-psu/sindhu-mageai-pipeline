@@ -77,4 +77,4 @@ def fetch_rid_station_codes():
 def load_data_from_rid(*args, **kwargs):
     codes = fetch_rid_station_codes()
     print(f"รหัสสถานีทั้งหมด : {codes[:]}")
-    return codesกั
+    return codes
