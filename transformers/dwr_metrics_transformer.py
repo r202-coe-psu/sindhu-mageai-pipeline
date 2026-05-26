@@ -10,9 +10,10 @@ if "transformer" not in globals():
 def transform(data, *args, **kwargs):
     print("### Starting Process STN Data")
     metric_outputs = dict()
-
     for i, d in enumerate(data):
-        attribute_outputs = []
+        province = str(d.get("province", "")).strip()
+        if "สงขลา" not in province:
+            continue
 
         date_str = d.get("date", None)
         rain     = d.get("rain", None)
@@ -24,18 +25,19 @@ def transform(data, *args, **kwargs):
         soil     = d.get("soil", None)
         soil07h  = d.get("soil07h", None)
 
-        # format datetime e.g. "18/05/26 03:00 น." -> "2026-05-18T03:00:00"
+        # format datetime e.g. "18/05/67 03:00 น." -> "2024-05-18T03:00:00"
         waterlevel_datetime = None
-        try:
-            clean = date_str.replace(" น.", "").strip()
-            day, month, year_th = clean.split(" ")[0].split("/")
-            time_part = clean.split(" ")[1]
-            year_ce = int(year_th) + 1957
-            waterlevel_datetime = datetime.strptime(
-                f"{year_ce}-{month}-{day} {time_part}", "%Y-%m-%d %H:%M"
-            ).isoformat()
-        except Exception as e:
-            print(f"(index: {i}, stn: {d.get('stn')}) datetime parse error: {e}")
+        if date_str and date_str != "N/A":
+            try:
+                clean = date_str.replace(" น.", "").strip()
+                day, month, year_th = clean.split(" ")[0].split("/")
+                time_part = clean.split(" ")[1]
+                year_ce = int(year_th) + 1957
+                waterlevel_datetime = datetime.strptime(
+                    f"{year_ce}-{month}-{day} {time_part}", "%Y-%m-%d %H:%M"
+                ).isoformat()
+            except Exception as e:
+                print(f"(index: {i}, stn: {d.get('stn')}) datetime parse error: {e}")
 
         # ensure numeric value
         def to_float(val):
@@ -44,40 +46,29 @@ def transform(data, *args, **kwargs):
             except (ValueError, TypeError):
                 return None
 
-        rain    = to_float(rain)
-        rain12h = to_float(rain12h)
-        rain07h = to_float(rain07h)
-        temp    = to_float(temp)
-        wl      = to_float(wl)
-        wl07h   = to_float(wl07h)
-        soil    = to_float(soil)
-        soil07h = to_float(soil07h)
-
         code    = str(d.get("stn", "")).strip()
         name_th = str(d.get("name", "")).strip()
         source  = "dwr"
 
         if code:
-            attribute_outputs.append(
-                {
-                    "code":               code,
-                    "name_th":            name_th,
-                    "source":             source,
-                    "waterlevel_datetime": waterlevel_datetime,
-                    "rain":    rain,
-                    "rain12h": rain12h,
-                    "rain07h": rain07h,
-                    "temp":    temp,
-                    "wl":      wl,
-                    "wl07h":   wl07h,
-                    "soil":    soil,
-                    "soil07h": soil07h,
-                }
-            )
+            record = {
+                "code":               code,
+                "name_th":            name_th,
+                "source":             source,
+                "waterlevel_datetime": waterlevel_datetime,
+                "rain":    to_float(rain),
+                "rain12h": to_float(rain12h),
+                "rain07h": to_float(rain07h),
+                "temp":    to_float(temp),
+                "wl":      to_float(wl),
+                "wl07h":   to_float(wl07h),
+                "soil":    to_float(soil),
+                "soil07h": to_float(soil07h),
+            }
 
-            if attribute_outputs:
-                metric_outputs[code] = attribute_outputs
+            
+            metric_outputs.setdefault(code, []).append(record)
 
-    print(f"\nTotal stations:", len(metric_outputs))
+    print(f"\nTotal metric stations in Songkhla:", len(metric_outputs))
 
     return metric_outputs

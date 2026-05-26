@@ -31,6 +31,9 @@ def transform(data, *args, **kwargs):
         amphoe_name_th   = str(d.get("amphoe", "")).strip()
         province_name_th = str(d.get("province", "")).strip()
 
+        if "สงขลา" not in province_name_th:
+            continue
+
         main_basin  = str(d.get("main_basin", "")).strip()
         sub_basin   = str(d.get("sub_basin", "")).strip()
         sub_station = d.get("sub_station", [])
