@@ -16,35 +16,43 @@ async def insert_data(metrics_stations):
     print("### Initialize Beanie")
     await models.init_default_beanie_client()
 
-    print("### Start insert data")
+    print("### Start insert data (Strict Songkhla Metrics Only)")
     metrics_to_save = []
+    exist_counter = 0
+
     for code, metrics_station in metrics_stations.items():
+        # 🎯 จุดแก้ไขสำคัญ: ค้นหาเฉพาะสถานีที่ระบุในฐานข้อมูลว่าอยู่จังหวัด "สงขลา" เท่านั้น
         station = (
             await models.Station.find(
-                models.Station.status == "active", models.Station.code == code
+                models.Station.status == "active", 
+                models.Station.code == code,
+                models.Station.metadata["province_name_th"] == "สงขลา"
             )
             .sort(-models.Station.updated_date)
             .first_or_none()
         )
+        
+        # 🛑 ถ้าไม่พบสถานีในจังหวัดสงขลา (เช่น เป็นสถานีจังหวัดอื่นที่มีอยู่เก่าใน DB) ให้ Skip ข้ามไปทันที
         if not station:
-            print(f"[!] Station {code} {metrics_station[0]['name_th']} not found")
             continue
 
-        exist_counter = 0
+        # แสดง Log เฉพาะสถานีในจังหวัดสงขลาจริงๆ
+        print(f"[>] Processing metrics for Songkhla Station: {code} - {metrics_station[0]['name_th']}")
+
         for data in metrics_station:
-            code = data.pop("code")
+            station_code = data.pop("code")
             name_th = data.pop("name_th")
-            source = data.pop("source")
+            data_source = data.pop("source")
             waterlevel_datetime = data.pop("waterlevel_datetime")
 
-            # Process
+            # แปลงค่ากลับเป็น datetime object สำหรับบันทึกพิกัดเวลา (Timestamp)
             timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
 
             for parameter, value in data.items():
-                if not value:
-                    # No value from api
+                if value is None:
                     continue
     
+                # เช็คข้อมูลซ้ำซ้อนในระดับ Metric
                 exists_metric = await models.Metric.find_one(
                     models.Metric.timestamp == timestamp,
                     models.Metric.metadata["station"]["$id"] == station.id,
@@ -53,15 +61,13 @@ async def insert_data(metrics_stations):
 
                 if exists_metric:
                     exist_counter += 1
-                    print(
-                        f"[/] Skip parameter {parameter} exists for station ({code})-{name_th} at {timestamp}"
-                    )
                     continue
 
+                # จัดเตรียม Metadata และแก้ไข source ให้เป็น thaiwater ให้ถูกต้อง
                 metadata = dict(
-                    source="air4thai",
+                    source="thaiwater", 
                     station=DBRef("stations", station.id),
-                    station_code=code,
+                    station_code=station_code,
                     created_date=datetime.datetime.now(datetime.timezone.utc),
                     parameter=parameter,
                 )
@@ -71,19 +77,21 @@ async def insert_data(metrics_stations):
                 )
 
                 metrics_to_save.append(metric)
+
+    # ทำการบันทึกข้อมูลแบบ Bulk Insert
     if metrics_to_save:
         await models.Metric.insert_many(metrics_to_save)
 
-    print(f"\nTotal {exist_counter+len(metrics_to_save)} documents")
-    print(f"Found exists {exist_counter} documents")
-    print(f"Inserted {len(metrics_to_save)} documents")
-    print(
-        f"Inserted rate {len(metrics_to_save)/(exist_counter+len(metrics_to_save))*100:.2f}%"
-    )
+    total_docs = exist_counter + len(metrics_to_save)
+    print(f"\nTotal processed documents for Songkhla: {total_docs}")
+    print(f"Found exists: {exist_counter} documents")
+    print(f"Inserted new: {len(metrics_to_save)} documents")
+    if total_docs > 0:
+        print(f"Inserted rate: {len(metrics_to_save)/total_docs*100:.2f}%")
     print("\n### Success insert data")
 
 
 @data_exporter
 def export_data_to_mongodb(metrics_stations, **kwargs) -> None:
     asyncio.run(insert_data(metrics_stations))
-    return
+    print("### Done Process")

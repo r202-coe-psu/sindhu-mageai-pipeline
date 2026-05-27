@@ -37,7 +37,7 @@ blocks:
   upstream_blocks:
   - rid_codes_loader
   uuid: rid_stations_loader
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration:
     file_path: transformers/rid_stations_transformer.py
@@ -57,7 +57,7 @@ blocks:
   upstream_blocks:
   - rid_stations_loader
   uuid: rid_stations_transformer
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks: []

@@ -51,7 +51,7 @@ blocks:
   language: python
   name: thaiwater_metrics_exporter
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:

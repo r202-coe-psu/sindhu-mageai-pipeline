@@ -8,15 +8,22 @@ if "transformer" not in globals():
 
 @transformer
 def transform(data, *args, **kwargs):
-    print("### Starting Process Data")
+    print("### Starting Process Data (Metrics)")
     metric_outputs = dict()
-
-    # import pprint
-    # pprint.pprint(data[741])
 
     for i, d in enumerate(data):
         attribute_outputs = []
-        waterlevel_datetime = d.get("waterlevel_datetime", None)
+        
+        station = d.get("station", {})
+        if not station:
+            continue
+            
+        code = str(station.get("id")).strip()
+        name = station.get("tele_station_name", {})
+        name_th = name.get("th", "").strip()
+        source = "thaiwater"
+
+        waterlevel_datetime_str = d.get("waterlevel_datetime", None)
         waterlevel_m = d.get("waterlevel_m", None)
         waterlevel_msl = d.get("waterlevel_msl", None)
         diff_wl_bank = d.get("diff_wl_bank", None)
@@ -25,62 +32,53 @@ def transform(data, *args, **kwargs):
         discharge = d.get("discharge", None)
         flow_rate = d.get("flow_rate", None)
 
-        # format datetime e.g. 2026-05-04 16:20
-        waterlevel_datetime = datetime.strptime(waterlevel_datetime, "%Y-%m-%d %H:%M")
+        # แปลง string วันเวลาจาก API เป็น datetime object
+        if waterlevel_datetime_str:
+            try:
+                waterlevel_datetime = datetime.strptime(waterlevel_datetime_str, "%Y-%m-%d %H:%M")
+            except Exception as e:
+                print(f"Error parsing datetime for station {code}: {e}")
+                continue
+        else:
+            continue
 
-        # process diff data
-        # ต่ำกว่าตลิ่ง -> negative
-        # ล้นตลิ่ง -> postive
-        # ถ้าไม่มีข้อมูล diff -> 0
+        # คำนวณค่าน้ำล้นตลิ่ง / ต่ำกว่าตลิ่ง
         if diff_wl_bank:
             diff_wl_bank = float(diff_wl_bank)
-            if diff_wl_bank_text.startswith("ต่ำกว่าตลิ่ง"):
+            if diff_wl_bank_text and diff_wl_bank_text.startswith("ต่ำกว่าตลิ่ง"):
                 diff_wl_bank = -diff_wl_bank
-            elif diff_wl_bank_text.startswith("ล้นตลิ่ง"):
+            elif diff_wl_bank_text and diff_wl_bank_text.startswith("ล้นตลิ่ง"):
                 diff_wl_bank = diff_wl_bank
             else:
                 diff_wl_bank = 0
-        # ensure numeric value
+
         if waterlevel_m:
             waterlevel_m = float(waterlevel_m)
-        if waterlevel_msl:  # msl is mean sea level,
+        if waterlevel_msl:
             waterlevel_msl = float(waterlevel_msl)
         if discharge:
-            # print(
-            #     f"(index: {i}, station: {d['station']['id']})discharge: {discharge} ({type(discharge)})"
-            # )
             discharge = float(discharge)
         if flow_rate:
-            # print(
-            #     f"(index: {i}, station: {d['station']['id']})flow_rate: {flow_rate} ({type(flow_rate)})"
-            # )
             flow_rate = float(flow_rate)
 
-        station = d.get("station", {})
-        if station:
-            code = str(station.get("id")).strip()
-            name = station.get("tele_station_name", {})
-            name_th = name.get("th", "").strip()
-            source = "thaiwater"
+        attribute_outputs.append(
+            {
+                "code": code,
+                "name_th": name_th,
+                "source": source,
+                # ส่งค่าวันเวลาในรูปแบบ ISO String ไปให้ Exporter
+                "waterlevel_datetime": waterlevel_datetime.isoformat(), 
+                "waterlevel_m": waterlevel_m,
+                "waterlevel_msl": waterlevel_msl,
+                "diff_wl_bank": diff_wl_bank,
+                "storage_percent": storage_percent,
+                "discharge": discharge,
+                "flow_rate": flow_rate,
+            }
+        )
 
-            attribute_outputs.append(
-                {
-                    "code": code,
-                    "name_th": name_th,
-                    "source": source,
-                    "waterlevel_datetime": waterlevel_datetime,
-                    "waterlevel_m": waterlevel_m,
-                    "waterlevel_msl": waterlevel_msl,
-                    "diff_wl_bank": diff_wl_bank,
-                    "storage_percent": storage_percent,
-                    "discharge": discharge,
-                    "flow_rate": flow_rate,
-                }
-            )
+        if attribute_outputs:
+            metric_outputs[code] = attribute_outputs
 
-            if attribute_outputs:
-                metric_outputs[code] = attribute_outputs
-
-    print(f"\nTotal stations:", len(metric_outputs))
-
+    print(f"Total stations processed in Transformer: {len(metric_outputs)}")
     return metric_outputs

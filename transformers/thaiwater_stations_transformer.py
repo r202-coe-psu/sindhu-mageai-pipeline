@@ -8,14 +8,23 @@ if "transformer" not in globals():
 
 @transformer
 def transform(data, *args, **kwargs):
-    print("### Starting Process Data")
+    print("### Starting Process Data (Filtering for Songkhla)")
     station_outputs = dict()
 
-    import pprint
-    pprint.pprint(data[0])
-
+    # ลูปเพื่อตรวจสอบข้อมูลสถานีทั้งหมด
     for d in data:
         attribute_outputs = []
+        
+        # 1. ดึงข้อมูล geocode มาตรวจสอบจังหวัดก่อน
+        geocode = d.get("geocode", {})
+        province_name_th = geocode.get("province_name", {}).get("th", "").strip()
+        province_code = geocode.get("province_code", "").strip()
+
+        # 🎯 เงื่อนไข: ถ้าไม่ใช่จังหวัดสงขลา (รหัส 90) ให้ข้าม (Skip) ไปดูตัวถัดไปทันที
+        if province_name_th != "สงขลา" and province_code != "90":
+            continue
+
+        # 2. ถ้าเป็นจังหวัดสงขลา จะทำกระบวนการดึงข้อมูลด้านล่างต่อตามปกติ
         station = d.get("station", {})
         if station:
             code = str(station.get("id")).strip()
@@ -28,9 +37,6 @@ def transform(data, *args, **kwargs):
             url = station.get("url", "https://thaiwater.net").strip()
             source = "thaiwater"
 
-            # metadata
-            geocode = d.get("geocode", {})
-
             tumbon_code = geocode.get("tumbon_code", "").strip()
             tumbon_name = geocode.get("tumbon_name", {})
             tumbon_name_en = tumbon_name.get("en", "").strip()
@@ -40,11 +46,6 @@ def transform(data, *args, **kwargs):
             amphoe_name = geocode.get("amphoe_name", {})
             amphoe_name_en = amphoe_name.get("en", "").strip()
             amphoe_name_th = amphoe_name.get("th", "").strip()
-
-            province_code = geocode.get("province_code", "").strip()
-            province_name = geocode.get("province_name", {})
-            province_name_en = province_name.get("en", "").strip()
-            province_name_th = province_name.get("th", "").strip()
 
             attribute_outputs.append(
                 {
@@ -56,7 +57,6 @@ def transform(data, *args, **kwargs):
                     "latitude": latitude,
                     "url": url,
                     "source": source,
-                    # metadata
                     "tumbon_code": tumbon_code,
                     "tumbon_name_en": tumbon_name_en,
                     "tumbon_name_th": tumbon_name_th,
@@ -64,7 +64,7 @@ def transform(data, *args, **kwargs):
                     "amphoe_name_en": amphoe_name_en,
                     "amphoe_name_th": amphoe_name_th,
                     "province_code": province_code,
-                    "province_name_en": province_name_en,
+                    "province_name_en": geocode.get("province_name", {}).get("en", "").strip(),
                     "province_name_th": province_name_th,
                 }
             )
@@ -72,6 +72,6 @@ def transform(data, *args, **kwargs):
             if attribute_outputs:
                 station_outputs[code] = attribute_outputs
 
-    print(f"\nTotal stations:", len(station_outputs))
+    print(f"\nTotal stations in Songkhla:", len(station_outputs))
 
     return station_outputs
