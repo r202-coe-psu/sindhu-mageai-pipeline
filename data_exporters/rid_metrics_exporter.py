@@ -73,12 +73,12 @@ async def insert_data(metrics_stations):
     if metrics_to_save:
         await models.Metric.insert_many(metrics_to_save)
 
-    print(f"\nTotal {exist_counter+len(metrics_to_save)} documents")
+    total = exist_counter + len(metrics_to_save)
+    print(f"\nTotal {total} documents")
     print(f"Found exists {exist_counter} documents")
     print(f"Inserted {len(metrics_to_save)} documents")
-    print(
-        f"Inserted rate {len(metrics_to_save)/(exist_counter+len(metrics_to_save))*100:.2f}%"
-    )
+    if total > 0:
+        print(f"Inserted rate {len(metrics_to_save)/total*100:.2f}%")
     print("\n### Success insert data")
 
 
