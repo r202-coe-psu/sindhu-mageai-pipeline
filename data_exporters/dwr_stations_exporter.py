@@ -9,6 +9,7 @@ nest_asyncio.apply()
 if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
+PROVINCE = "สงขลา"
 
 async def insert_data(stations):
     print("### Initialize Beanie")
@@ -42,6 +43,10 @@ async def insert_data(stations):
 
             created_date = datetime.datetime.now(datetime.timezone.utc)
             updated_date = datetime.datetime.now(datetime.timezone.utc)
+
+            # skip other province
+            if province_name_th != PROVINCE:
+                continue
 
             metadata = dict(
                 station_type=station_type,

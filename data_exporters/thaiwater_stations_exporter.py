@@ -9,6 +9,7 @@ from sindhu.schemas import bases
 if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
+PROVINCE = "Songkhla"
 
 async def insert_data(stations):
     print("### Initialize Beanie")
@@ -43,7 +44,11 @@ async def insert_data(stations):
             province_code = data.pop("province_code", None)
             province_name_en = data.pop("province_name_en", None)
             province_name_th = data.pop("province_name_th", None)
-        
+
+            # skip other stations
+            if province_name_en != PROVINCE:
+                continue
+
             metadata = dict(
                 tumbon_code=tumbon_code,
                 tumbon_name_en=tumbon_name_en,
