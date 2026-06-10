@@ -9,7 +9,7 @@ if "transformer" not in globals():
 def transform(data, *args, **kwargs):
     print("### Starting Process Data")
     metric_outputs = dict()
-
+ 
     for d in data:
         if d.get("status_code") != 200:
             continue
@@ -50,7 +50,8 @@ def transform(data, *args, **kwargs):
 
             waterlevel_msl_up = row.get("WL_UP_MSL")
             waterlevel_msl_down = row.get("WL_DOWN_MSL")
-            discharge = row.get("FLOW")
+            waterlevel_msl = None
+            flow = row.get("FLOW")
             rainfall_15m = row.get("RF15")
             do_value = row.get("DO")
             ec = row.get("EC")
@@ -63,8 +64,13 @@ def transform(data, *args, **kwargs):
                 waterlevel_msl_up = float(waterlevel_msl_up)
             if waterlevel_msl_down:
                 waterlevel_msl_down = float(waterlevel_msl_down)
-            if discharge:
-                discharge = float(discharge)
+            if waterlevel_msl_up is not None and waterlevel_msl_down is not None:
+                waterlevel_msl = float(waterlevel_msl_up - waterlevel_msl_down)
+
+
+            print(waterlevel_msl)
+            if flow:
+                flow = float(flow)
             if rainfall_15m:
                 rainfall_15m = float(rainfall_15m)
             if do_value:
@@ -85,7 +91,8 @@ def transform(data, *args, **kwargs):
                     "waterlevel_datetime": waterlevel_datetime,
                     "waterlevel_msl_up": waterlevel_msl_up,
                     "waterlevel_msl_down": waterlevel_msl_down,
-                    "discharge": discharge,
+                    "waterlevel_msl": waterlevel_msl,
+                    "flow": flow,
                     "rainfall_15m": rainfall_15m,
                     "do": do_value,
                     "ec": ec,
