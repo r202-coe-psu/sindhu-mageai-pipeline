@@ -36,11 +36,14 @@ async def insert_data(metrics_stations):
             source = data.pop("source")
             waterlevel_datetime = data.pop("waterlevel_datetime")
 
-            # Process
-            timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
+            # Process — waterlevel_datetime อาจเป็น datetime object (จาก transformer) หรือ string
+            if isinstance(waterlevel_datetime, str):
+                timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
+            else:
+                timestamp = waterlevel_datetime
 
             for parameter, value in data.items():
-                if not value:
+                if value is None:
                     # No value from api
                     continue
 

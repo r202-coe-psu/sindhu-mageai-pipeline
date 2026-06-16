@@ -31,45 +31,51 @@ async def insert_data(stations):
             created_date = datetime.datetime.now(datetime.timezone.utc)
             updated_date = datetime.datetime.now(datetime.timezone.utc)
 
-        exists_name_th_station = (
-            await models.Station.find(
-                models.Station.name_th == name_th,
+            exists_name_th_station = (
+                await models.Station.find(
+                    models.Station.name_th == name_th,
+                )
+                .sort(-models.Station.updated_date)
+                .first_or_none()
             )
-            .sort(-models.Station.updated_date)
-            .first_or_none()
-        )
-        if exists_name_th_station:
-            print(f"[>] Updating station ({station_code}) {name_th}")
-            exists_name_th_station.name = name
-            exists_name_th_station.name_th = name_th
-            exists_name_th_station.code = station_code
-            exists_name_th_station.source = source
-            exists_name_th_station.url = url
-            exists_name_th_station.coordinates = bases.GeoObject(
-                coordinates=[longitude, latitude]
-            )
-            exists_name_th_station.status = "active"  # always active after use
-            exists_name_th_station.updated_date = datetime.datetime.now(
-                datetime.timezone.utc
-            )
-            await exists_name_th_station.save()
-            continue
+            if exists_name_th_station:
+                print(f"[>] Updating station ({station_code}) {name_th}")
+                exists_name_th_station.name = name
+                exists_name_th_station.name_th = name_th
+                exists_name_th_station.code = station_code
+                exists_name_th_station.source = source
+                exists_name_th_station.url = url
+                exists_name_th_station.station_type = station_type
+                exists_name_th_station.location = location
+                exists_name_th_station.basin = basin
+                exists_name_th_station.coordinates = bases.GeoObject(
+                    coordinates=[longitude, latitude]
+                )
+                exists_name_th_station.status = "active"  # always active after use
+                exists_name_th_station.updated_date = datetime.datetime.now(
+                    datetime.timezone.utc
+                )
+                await exists_name_th_station.save()
+                continue
 
-        # Otherwise It's new station
-        print(f"[+] New Station ({station_code}) {name_th}")
-        station = models.Station(
-            name=name,
-            name_th=name_th,
-            code=station_code,
-            source=source,
-            url=url,
-            coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
-            created_date=created_date,
-            updated_date=updated_date,
-            status="active",
-        )
+            # Otherwise It's new station
+            print(f"[+] New Station ({station_code}) {name_th}")
+            new_station = models.Station(
+                name=name,
+                name_th=name_th,
+                code=station_code,
+                source=source,
+                url=url,
+                station_type=station_type,
+                location=location,
+                basin=basin,
+                coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
+                created_date=created_date,
+                updated_date=updated_date,
+                status="active",
+            )
 
-        stations_to_save.append(station)
+            stations_to_save.append(new_station)
 
     if stations_to_save:
         await models.Station.insert_many(stations_to_save)
