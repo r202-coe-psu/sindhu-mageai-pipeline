@@ -55,9 +55,14 @@ def fetch_station_plots(*args, **kwargs):
         print(f"❌ ดึงข้อมูลจาก WebSocket ล้มเหลว: {e}")
         return []
 
-    # ดึงเฉพาะรายการข้อมูลสถานีทั้งหมดออกมาในรูปของ List
-    results = list(data.values())
-    print(f"✅ โหลดข้อมูลดิบสำเร็จ ทั้งหมด {len(results)} สถานี")
+    # ดึงเฉพาะรายการข้อมูลสถานีในจังหวัดสงขลา
+    results = []
+    for key, item in data.items():
+        province = item.get("province") or ""
+        if "สงขลา" in province:
+            results.append(item)
+            
+    print(f"✅ โหลดข้อมูลดิบสำเร็จ ทั้งหมด {len(results)} สถานี ในจังหวัดสงขลา")
     
     if results:
         print(f"\n📄 ตัวอย่างข้อมูลสถานีแรกที่ดึงได้:")
