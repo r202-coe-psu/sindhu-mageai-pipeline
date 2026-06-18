@@ -26,7 +26,7 @@ def transform(data, *args, **kwargs):
             longitude = station.get("longitude")
             latitude = station.get("latitude")
             station_type = (station.get("station_type_raw") or "").strip()
-            url = (station.get("url") or "http://119.110.213.190/rid/showlist.php?list=08").strip()
+            url = (station.get("url") or "https://telerid.rid.go.th").strip()
             source = "rid"
 
             attribute_outputs.append(

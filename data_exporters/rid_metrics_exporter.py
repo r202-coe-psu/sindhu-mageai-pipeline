@@ -36,7 +36,13 @@ async def insert_data(metrics_stations):
             source = data.pop("source")
             waterlevel_datetime = data.pop("waterlevel_datetime")
 
-            # Process — waterlevel_datetime อาจเป็น datetime object (จาก transformer) หรือ string
+            # Pop physical profile and thresholds so they don't get saved as separate metric parameters
+            cross_section = data.pop("cross_section", None)
+            zerogate = data.pop("zerogate", None)
+            water_level_warning = data.pop("water_level_warning", None)
+            water_level_critical = data.pop("water_level_critical", None)
+
+            # Process — waterlevel_datetime
             if isinstance(waterlevel_datetime, str):
                 timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
             else:
@@ -60,12 +66,17 @@ async def insert_data(metrics_stations):
                     )
                     continue
 
+                # Store cross_section and other thresholds inside the metric's metadata
                 metadata = dict(
                     source=source,
                     station=DBRef("stations", station.id),
                     station_code=code,
                     created_date=datetime.datetime.now(datetime.timezone.utc),
                     parameter=parameter,
+                    cross_section=cross_section,
+                    zerogate=zerogate,
+                    water_level_warning=water_level_warning,
+                    water_level_critical=water_level_critical,
                 )
 
                 metric = models.Metric(

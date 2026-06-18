@@ -96,7 +96,7 @@ def map_station_data(item):
             "longitude": longitude,
             "latitude": latitude,
             "station_type_raw": station_type_raw,
-            "url": f"http://119.110.213.190/rid/stations.php?IdCode=08:{code}"
+            "url": "https://telerid.rid.go.th",
         }
     }
 

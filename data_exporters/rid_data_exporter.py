@@ -31,6 +31,12 @@ async def insert_data(stations):
             created_date = datetime.datetime.now(datetime.timezone.utc)
             updated_date = datetime.datetime.now(datetime.timezone.utc)
 
+            metadata = {
+                "station_type": station_type,
+                "location": location,
+                "basin": basin,
+            }
+
             exists_name_th_station = (
                 await models.Station.find(
                     models.Station.name_th == name_th,
@@ -45,9 +51,7 @@ async def insert_data(stations):
                 exists_name_th_station.code = station_code
                 exists_name_th_station.source = source
                 exists_name_th_station.url = url
-                exists_name_th_station.station_type = station_type
-                exists_name_th_station.location = location
-                exists_name_th_station.basin = basin
+                exists_name_th_station.metadata = metadata
                 exists_name_th_station.coordinates = bases.GeoObject(
                     coordinates=[longitude, latitude]
                 )
@@ -66,9 +70,7 @@ async def insert_data(stations):
                 code=station_code,
                 source=source,
                 url=url,
-                station_type=station_type,
-                location=location,
-                basin=basin,
+                metadata=metadata,
                 coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
                 created_date=created_date,
                 updated_date=updated_date,

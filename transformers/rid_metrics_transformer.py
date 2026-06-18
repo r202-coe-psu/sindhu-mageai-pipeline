@@ -1,4 +1,4 @@
-import json
+import pytz
 from datetime import datetime
 
 if "transformer" not in globals():
@@ -7,97 +7,108 @@ if "transformer" not in globals():
 
 @transformer
 def transform(data, *args, **kwargs):
-    print("### Starting Process Data")
+    print("### Starting Process Data (Metrics)")
     metric_outputs = dict()
- 
+
     for d in data:
-        if d.get("status_code") != 200:
-            continue
-
-        raw_text = d.get("raw_text")
-        if not raw_text:
-            continue
-
-        code = str(d.get("station_code", "")).strip()
+        code = str(d.get("code", "")).strip()
         if not code:
             continue
 
-        try:
-            rows = json.loads(raw_text)
-        except json.JSONDecodeError as e:
-            print(f"[!] Failed to parse raw_text for station {code}: {e}")
-            continue
+        vals = d.get("values", {})
+        val_wl = vals.get("water_level", {})
+        val_r = vals.get("rain_sum_now", {})
 
-        # เอาเฉพาะข้อมูลล่าสุดของแต่ละสถานี (เหมือนที่หน้าเว็บ RID sort client-side)
-        rows = [r for r in rows if r.get("DateValue")]
-        if not rows:
-            continue
-        rows.sort(key=lambda r: r["DateValue"], reverse=True)
-        rows = rows[:1]
+        # 1. Extract and format date/time
+        unixtime = val_wl.get("unixtime") or val_r.get("unixtime")
+        if isinstance(unixtime, list):
+            unixtime = unixtime[0] if unixtime else None
 
-        attribute_outputs = []
-        for row in rows:
-            date_value = row.get("DateValue")
-            if not date_value:
-                continue
+        if not unixtime:
+            for k, v in vals.items():
+                if isinstance(v, dict) and v.get("unixtime"):
+                    u = v.get("unixtime")
+                    if isinstance(u, list) and u:
+                        unixtime = u[0]
+                        break
+                    elif isinstance(u, (int, float)):
+                        unixtime = u
+                        break
+
+        if not isinstance(unixtime, (int, float)):
             try:
-                waterlevel_datetime = datetime.strptime(
-                    date_value, "%Y-%m-%d %H:%M:%S.%f"
-                )
+                unixtime = float(unixtime)
+            except (TypeError, ValueError):
+                unixtime = datetime.now().timestamp()
+
+        tz_thailand = pytz.timezone('Asia/Bangkok')
+        waterlevel_datetime = datetime.fromtimestamp(unixtime, tz=tz_thailand)
+
+        # 2. Extract Water Level (WL_UP, WL_DOWN)
+        wl_list = vals.get("water_level_value_list", {}).get("value", [])
+        wl_up = None
+        wl_down = None
+
+        if wl_list and len(wl_list) > 0:
+            try:
+                val0 = wl_list[0]
+                if val0 and val0 != "-":
+                    wl_up = float(val0)
             except ValueError:
-                print(f"[!] Invalid DateValue for station {code}: {date_value}")
-                continue
+                pass
 
-            waterlevel_msl_up = row.get("WL_UP_MSL")
-            waterlevel_msl_down = row.get("WL_DOWN_MSL")
-            flow = row.get("FLOW")
-            rainfall_15m = row.get("RF15")
-            do_value = row.get("DO")
-            ec = row.get("EC")
-            ph = row.get("PH")
-            tp = row.get("TP")
-            sa = row.get("SA")
+        if wl_list and len(wl_list) > 1:
+            try:
+                val1 = wl_list[1]
+                if val1 and val1 != "-":
+                    wl_down = float(val1)
+            except ValueError:
+                pass
 
-            # ensure numeric value
-            if waterlevel_msl_up is not None:
-                waterlevel_msl_up = float(waterlevel_msl_up)
-            if waterlevel_msl_down is not None:
-                waterlevel_msl_down = float(waterlevel_msl_down)
-            if flow is not None:
-                flow = float(flow)
-            if rainfall_15m is not None:
-                rainfall_15m = float(rainfall_15m)
-            if do_value is not None:
-                do_value = float(do_value)
-            if ec is not None:
-                ec = float(ec)
-            if ph is not None:
-                ph = float(ph)
-            if tp is not None:
-                tp = float(tp)
-            if sa is not None:
-                sa = float(sa)
+        # Fallback to single water_level value for wl_up
+        if wl_up is None and val_wl.get("value") is not None:
+            try:
+                val_val = val_wl.get("value")
+                if val_val and val_val != "-":
+                    wl_up = float(val_val)
+            except ValueError:
+                pass
 
-            attribute_outputs.append(
-                {
-                    "code": code,
-                    "source": "rid",
-                    "waterlevel_datetime": waterlevel_datetime,
-                    "waterlevel_msl_up": waterlevel_msl_up,
-                    "waterlevel_msl_down": waterlevel_msl_down,
-                    "flow": flow,
-                    "rainfall_15m": rainfall_15m,
-                    "do": do_value,
-                    "ec": ec,
-                    "ph": ph,
-                    "tp": tp,
-                    "sa": sa,
-                }
-            )
+        # 3. Extract Rainfall (RF15)
+        rf = None
+        if val_r.get("value") is not None:
+            try:
+                val_val = val_r.get("value")
+                if val_val and val_val != "-":
+                    rf = float(val_val)
+            except ValueError:
+                pass
 
-        if attribute_outputs:
-            metric_outputs[code] = attribute_outputs
+        # 4. Gather metrics and metadata
+        attribute_outputs = [
+            {
+                "code": code,
+                "source": "rid",
+                "waterlevel_datetime": waterlevel_datetime,
+                "waterlevel_msl_up": wl_up,
+                "waterlevel_msl_down": wl_down,
+                "flow": None,
+                "rainfall_15m": rf,
+                "do": None,
+                "ec": None,
+                "ph": None,
+                "tp": None,
+                "sa": None,
+                # Pass physical profile details to exporter
+                "cross_section": d.get("cross_section"),
+                "zerogate": d.get("zerogate"),
+                "water_level_warning": d.get("water_level_warning"),
+                "water_level_critical": d.get("water_level_critical"),
+            }
+        ]
 
-    print(f"\nTotal stations:", len(metric_outputs))
+        metric_outputs[code] = attribute_outputs
+
+    print(f"\nTotal stations processed:", len(metric_outputs))
 
     return metric_outputs
