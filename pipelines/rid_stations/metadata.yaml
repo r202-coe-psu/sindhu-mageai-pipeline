@@ -2,40 +2,21 @@ blocks:
 - all_upstream_blocks_executed: true
   color: null
   configuration:
-    file_path: data_loaders/rid_codes_loader.py
-    file_source:
-      path: data_loaders/rid_codes_loader.py
-  downstream_blocks:
-  - rid_stations_loader
-  executor_config: null
-  executor_type: local_python
-  has_callback: false
-  language: python
-  name: rid_codes_loader
-  retry_config: null
-  status: executed
-  timeout: null
-  type: data_loader
-  upstream_blocks: []
-  uuid: rid_codes_loader
-- all_upstream_blocks_executed: true
-  color: null
-  configuration:
     file_path: data_loaders/rid_stations_loader.py
     file_source:
       path: data_loaders/rid_stations_loader.py
-  downstream_blocks: []
+  downstream_blocks:
+  - rid_stations_transformer
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
   name: rid_stations_loader
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_loader
-  upstream_blocks:
-  - rid_codes_loader
+  upstream_blocks: []
   uuid: rid_stations_loader
 - all_upstream_blocks_executed: true
   color: null
