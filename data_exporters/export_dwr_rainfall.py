@@ -49,9 +49,12 @@ async def insert_data(metrics_stations):
         valid_timestamps = []
         for d in metrics_station:
             dt_str = d.get("waterlevel_datetime")
-            if dt_str:
+            if not dt_str:
+                continue
+            try:
                 valid_timestamps.append(datetime.datetime.fromisoformat(dt_str))
-
+            except ValueError:
+                continue
         existing_metrics_set = set()
         if valid_timestamps:
             min_ts = min(valid_timestamps)
