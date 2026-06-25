@@ -12,6 +12,7 @@ def transform(data, *args, **kwargs):
     station_outputs = dict()
 
     import pprint
+
     pprint.pprint(data[0])
 
     for d in data:
@@ -25,8 +26,12 @@ def transform(data, *args, **kwargs):
             location = (station.get("location") or "").strip()
             longitude = station.get("longitude")
             latitude = station.get("latitude")
-            station_type = (station.get("station_type_raw") or "").strip()
+            station_type = (
+                station.get("station_type") or station.get("station_type_raw") or ""
+            ).strip()
             url = (station.get("url") or "https://telerid.rid.go.th").strip()
+            water_level_warning = station.get("water_level_warning")
+            water_level_critical = station.get("water_level_critical")
             source = "rid"
 
             attribute_outputs.append(
@@ -35,12 +40,14 @@ def transform(data, *args, **kwargs):
                     "name_en": name_en,
                     "name_th": name_th,
                     "station_type": station_type,
-                    "location" : location,
-                    "basin" : basin,
+                    "location": location,
+                    "basin": basin,
                     "longitude": longitude,
                     "latitude": latitude,
                     "url": url,
                     "source": source,
+                    "water_level_warning": water_level_warning,
+                    "water_level_critical": water_level_critical,
                 }
             )
 

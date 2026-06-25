@@ -5,7 +5,7 @@ import sys
 import subprocess
 import nest_asyncio
 
-if 'data_loader' not in globals():
+if "data_loader" not in globals():
     from mage_ai.data_preparation.decorators import data_loader
 
 nest_asyncio.apply()
@@ -17,17 +17,22 @@ def get_ws_data():
     except ImportError:
         print("websockets not found, installing websockets...")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "websockets"])
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "websockets"]
+            )
         except Exception as e:
             print(f"Normal install failed: {e}. Trying user install...")
             try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "websockets"])
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", "--user", "websockets"]
+                )
             except Exception as ue:
                 print(f"User install failed: {ue}")
-        
+
         # Refresh python paths to find the newly installed package
         import site
         import importlib
+
         if hasattr(site, "getusersitepackages"):
             user_site = site.getusersitepackages()
             if user_site not in sys.path:
@@ -37,13 +42,28 @@ def get_ws_data():
 
     async def _fetch():
         uri = "wss://telerid.rid.go.th/ws/public/"
-        print(f"Connecting to WebSocket: {uri} ...")
-        async with websockets.connect(uri, max_size=20 * 1024 * 1024) as websocket:
-            print("Connected! Receiving INIT message...")
-            message = await websocket.recv()
-            outer = json.loads(message)
-            inner = json.loads(outer.get("message", "{}"))
-            return inner.get("data", {})
+        max_retries = 5
+        for attempt in range(1, max_retries + 1):
+            try:
+                print(
+                    f"Connecting to WebSocket: {uri} (Attempt {attempt}/{max_retries}) ..."
+                )
+                async with websockets.connect(
+                    uri, max_size=20 * 1024 * 1024, open_timeout=15
+                ) as websocket:
+                    print("Connected! Receiving INIT message...")
+                    message = await websocket.recv()
+                    outer = json.loads(message)
+                    inner = json.loads(outer.get("message", "{}"))
+                    return inner.get("data", {})
+            except Exception as e:
+                print(f"Connection attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    backoff = 2**attempt
+                    print(f"Waiting {backoff} seconds before retrying...")
+                    await asyncio.sleep(backoff)
+                else:
+                    raise e
 
     return asyncio.run(_fetch())
 
@@ -52,7 +72,7 @@ def map_station_data(item):
     code = item.get("code")
     if not code:
         return None
-    
+
     # Format Thai location address
     tambon = item.get("tambon")
     amphur = item.get("amphur")
@@ -86,6 +106,21 @@ def map_station_data(item):
     basin = item.get("basin", {})
     basin_name = basin.get("name") if isinstance(basin, dict) else None
 
+    # Warning and Critical Levels
+    water_level_warning = item.get("water_level_warning")
+    if water_level_warning is not None and water_level_warning != "-":
+        try:
+            water_level_warning = float(water_level_warning)
+        except ValueError:
+            pass
+
+    water_level_critical = item.get("water_level_critical")
+    if water_level_critical is not None and water_level_critical != "-":
+        try:
+            water_level_critical = float(water_level_critical)
+        except ValueError:
+            pass
+
     return {
         "station": {
             "station_code": code,
@@ -95,8 +130,10 @@ def map_station_data(item):
             "location": location_str,
             "longitude": longitude,
             "latitude": latitude,
-            "station_type_raw": station_type_raw,
+            "station_type": station_type_raw,
             "url": "https://telerid.rid.go.th",
+            "water_level_warning": water_level_warning,
+            "water_level_critical": water_level_critical,
         }
     }
 
@@ -122,6 +159,7 @@ def load_station_details(*args, **kwargs):
     if results:
         print(f"\n📄 ตัวอย่าง 5 สถานีแรก:")
         import pprint
+
         pprint.pprint(results[0:5])
-    
+
     return results

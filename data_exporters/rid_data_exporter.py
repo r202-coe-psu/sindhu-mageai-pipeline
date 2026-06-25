@@ -28,6 +28,8 @@ async def insert_data(stations):
             basin = data.pop("basin")
             longitude = data.pop("longitude")
             latitude = data.pop("latitude")
+            water_level_warning = data.pop("water_level_warning", None)
+            water_level_critical = data.pop("water_level_critical", None)
             created_date = datetime.datetime.now(datetime.timezone.utc)
             updated_date = datetime.datetime.now(datetime.timezone.utc)
 
@@ -35,6 +37,8 @@ async def insert_data(stations):
                 "station_type": station_type,
                 "location": location,
                 "basin": basin,
+                "water_level_warning": water_level_warning,
+                "water_level_critical": water_level_critical,
             }
 
             exists_name_th_station = (
