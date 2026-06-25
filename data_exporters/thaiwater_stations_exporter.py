@@ -46,7 +46,7 @@ async def insert_data(stations):
             province_name_th = data.pop("province_name_th", None)
 
             # skip other stations
-            if province_name_en != PROVINCE:
+            if province_name_th != "สงขลา":
                 continue
 
             metadata = dict(
@@ -61,10 +61,11 @@ async def insert_data(stations):
                 province_name_th=province_name_th,
             )
 
-            # ตรวจสอบสถานีเดิมในระบบจาก name_th
+            # ตรวจสอบสถานีเดิมในระบบจาก code และ source
             exists_name_th_station = (
                 await models.Station.find(
-                    models.Station.name_th == name_th,
+                    models.Station.code == station_code,
+                    models.Station.source == source,
                 )
                 .sort(-models.Station.updated_date)
                 .first_or_none()

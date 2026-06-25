@@ -44,10 +44,10 @@ def transform(data, *args, **kwargs):
                     "basin": basin,
                     "longitude": longitude,
                     "latitude": latitude,
-                    "url": url,
-                    "source": source,
                     "water_level_warning": water_level_warning,
                     "water_level_critical": water_level_critical,
+                    "url": url,
+                    "source": source,
                 }
             )
 

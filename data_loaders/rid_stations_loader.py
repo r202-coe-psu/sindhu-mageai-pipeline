@@ -131,9 +131,10 @@ def map_station_data(item):
             "longitude": longitude,
             "latitude": latitude,
             "station_type": station_type_raw,
-            "url": "https://telerid.rid.go.th",
             "water_level_warning": water_level_warning,
             "water_level_critical": water_level_critical,
+            "url": "https://telerid.rid.go.th",
+            
         }
     }
 

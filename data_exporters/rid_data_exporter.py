@@ -43,7 +43,8 @@ async def insert_data(stations):
 
             exists_name_th_station = (
                 await models.Station.find(
-                    models.Station.name_th == name_th,
+                    models.Station.code == station_code,
+                    models.Station.source == source,
                 )
                 .sort(-models.Station.updated_date)
                 .first_or_none()
