@@ -31,7 +31,10 @@ def transform(data, *args, **kwargs):
         amphoe_name_th   = str(d.get("amphoe", "")).strip()
         province_name_th = str(d.get("province", "")).strip()
 
-        if "สงขลา" not in province_name_th:
+        TARGET_PROVINCES = ["สงขลา", "songkhla"]
+        
+        province_name_lower = province_name_th.lower()
+        if not any(target in province_name_lower for target in TARGET_PROVINCES):
             continue
 
         main_basin  = str(d.get("main_basin", "")).strip()

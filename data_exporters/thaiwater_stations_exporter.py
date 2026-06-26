@@ -45,9 +45,7 @@ async def insert_data(stations):
             province_name_en = data.pop("province_name_en", None)
             province_name_th = data.pop("province_name_th", None)
 
-            # skip other stations
-            if province_name_th != "สงขลา":
-                continue
+            # Filtering is already handled in Transformer
 
             metadata = dict(
                 tumbon_code=tumbon_code,

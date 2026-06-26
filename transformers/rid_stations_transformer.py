@@ -19,6 +19,12 @@ def transform(data, *args, **kwargs):
         attribute_outputs = []
         station = d.get("station", {})
         if station:
+            province = station.get("province", "")
+            province_lower = province.lower()
+            TARGET_PROVINCES = ["สงขลา", "songkhla"]
+            if not any(target in province_lower for target in TARGET_PROVINCES):
+                continue
+
             code = str(station.get("station_code") or "").strip()
             name_th = (station.get("name_th") or "").strip()
             name_en = (station.get("name_en") or "").strip()

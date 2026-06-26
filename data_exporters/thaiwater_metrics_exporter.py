@@ -25,8 +25,7 @@ async def insert_data(metrics_stations):
         station = (
             await models.Station.find(
                 models.Station.status == "active", 
-                models.Station.code == code,
-                models.Station.metadata["province_name_th"] == "สงขลา"
+                models.Station.code == code
             )
             .sort(-models.Station.updated_date)
             .first_or_none()

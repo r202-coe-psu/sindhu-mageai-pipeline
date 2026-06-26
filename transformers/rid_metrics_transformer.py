@@ -15,6 +15,12 @@ def transform(data, *args, **kwargs):
         if not code:
             continue
 
+        province = d.get("province", "")
+        province_lower = province.lower()
+        TARGET_PROVINCES = ["สงขลา", "songkhla"]
+        if not any(target in province_lower for target in TARGET_PROVINCES):
+            continue
+
         vals = d.get("values", {})
         raw_water_level = vals.get("water_level")
         raw_water_level_value_list = vals.get("water_level_value_list", {}).get("value")

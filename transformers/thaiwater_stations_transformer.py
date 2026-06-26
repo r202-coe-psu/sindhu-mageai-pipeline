@@ -18,10 +18,13 @@ def transform(data, *args, **kwargs):
         # 1. ดึงข้อมูล geocode มาตรวจสอบจังหวัดก่อน
         geocode = d.get("geocode", {})
         province_name_th = geocode.get("province_name", {}).get("th", "").strip()
-        province_code = geocode.get("province_code", "").strip()
+        province_name_en = geocode.get("province_name", {}).get("en", "").strip().lower()
 
-        # 🎯 เงื่อนไข: ถ้าไม่ใช่จังหวัดสงขลา (รหัส 90) ให้ข้าม (Skip) ไปดูตัวถัดไปทันที
-        if province_name_th != "สงขลา" and province_code != "90":
+        TARGET_PROVINCES = ["สงขลา", "songkhla"]
+
+        # 🎯 เงื่อนไข: เช็คว่าจังหวัดอยู่ในเป้าหมายหรือไม่
+        if not any(target in province_name_th for target in TARGET_PROVINCES) and \
+           not any(target in province_name_en for target in TARGET_PROVINCES):
             continue
 
         # 2. ถ้าเป็นจังหวัดสงขลา จะทำกระบวนการดึงข้อมูลด้านล่างต่อตามปกติ

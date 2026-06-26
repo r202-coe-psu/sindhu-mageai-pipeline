@@ -12,7 +12,9 @@ def transform(data, *args, **kwargs):
     metric_outputs = dict()
     for i, d in enumerate(data):
         province = str(d.get("province", "")).strip()
-        if "สงขลา" not in province:
+        TARGET_PROVINCES = ["สงขลา", "songkhla"]
+        province_lower = province.lower()
+        if not any(target in province_lower for target in TARGET_PROVINCES):
             continue
 
         date_str = d.get("date", None)

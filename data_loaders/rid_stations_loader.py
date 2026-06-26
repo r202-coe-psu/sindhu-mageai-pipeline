@@ -150,11 +150,11 @@ def load_station_details(*args, **kwargs):
 
     results = []
     for key, item in data.items():
-        province = item.get("province") or ""
-        if "สงขลา" in province:
-            station_detail = map_station_data(item)
-            if station_detail:
-                results.append(station_detail)
+        station_detail = map_station_data(item)
+        if station_detail:
+            # Append province to station_detail for transformer filtering
+            station_detail["station"]["province"] = item.get("province") or ""
+            results.append(station_detail)
 
     print(f"✅ สำเร็จ: โหลดสถานีทั้งหมด {len(results)} สถานี ในจังหวัดสงขลา")
     if results:
