@@ -24,8 +24,7 @@ def transform(data, *args, **kwargs):
         TARGET_PROVINCES = ["สงขลา", "songkhla"]
 
         # 🎯 เงื่อนไข: เช็คว่าจังหวัดอยู่ในเป้าหมายหรือไม่
-        if not any(target in province_name_th for target in TARGET_PROVINCES) and \
-           not any(target in province_name_en for target in TARGET_PROVINCES):
+        if not any(target in province_name_th for target in TARGET_PROVINCES) and not any(target in province_name_en for target in TARGET_PROVINCES):
             continue
 
         # 2. ถ้าเป็นจังหวัดสงขลา จะทำกระบวนการดึงข้อมูลด้านล่างต่อตามปกติ

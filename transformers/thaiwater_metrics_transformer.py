@@ -52,8 +52,12 @@ def transform(data, *args, **kwargs):
             else:
                 diff_wl_bank = 0
 
-        if waterlevel_m:
-            waterlevel_m = float(waterlevel_m)
+        if waterlevel_msl is not None:
+            waterlevel = float(waterlevel_msl)
+        elif waterlevel_m is not None:
+            waterlevel = float(waterlevel_m)
+        else:
+            waterlevel = None
 
         attribute_outputs.append(
             {
@@ -61,7 +65,7 @@ def transform(data, *args, **kwargs):
                 "name_th": name_th,
                 "source": source,
                 "waterlevel_datetime": waterlevel_datetime.isoformat(), 
-                "waterlevel": waterlevel_m,
+                "waterlevel": waterlevel,
                 "diff_wl_bank": diff_wl_bank,
             }
         )
