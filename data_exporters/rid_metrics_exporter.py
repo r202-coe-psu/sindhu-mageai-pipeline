@@ -32,25 +32,9 @@ async def insert_data(metrics_stations):
             continue
 
         for data in metrics_station:
-            code = data.pop("code")
-            source = data.pop("source")
+            station_code = data.pop("code")
+            data_source = data.pop("source")
             waterlevel_datetime = data.pop("waterlevel_datetime")
-
-            # Extract parameter name and value
-            parameter = data.pop("parameter_name")
-            value = data.pop("parameter_value")
-
-            # Pop metadata fields
-            cross_section = data.pop("cross_section", None)
-            zerogate = data.pop("zerogate", None)
-            water_level_warning = data.pop("water_level_warning", None)
-            water_level_critical = data.pop("water_level_critical", None)
-            
-            # Pop raw WebSocket fields
-            raw_water_level = data.pop("raw_water_level", None)
-            raw_water_level_value_list = data.pop("raw_water_level_value_list", None)
-            raw_rain_sum_now = data.pop("raw_rain_sum_now", None)
-            raw_rain_sum = data.pop("raw_rain_sum", None)
 
             # Process — waterlevel_datetime
             if isinstance(waterlevel_datetime, str):
@@ -58,43 +42,39 @@ async def insert_data(metrics_stations):
             else:
                 timestamp = waterlevel_datetime
 
-            # Now check if this metric already exists in MongoDB
-            exists_metric = await models.Metric.find_one(
-                models.Metric.timestamp == timestamp,
-                models.Metric.metadata["station"]["$id"] == station.id,
-                models.Metric.metadata["parameter"] == parameter,
-            ).exists()
+            # Now iterate over remaining items which are parameter metrics
+            for parameter, value in data.items():
+                if value is None:
+                    continue
 
-            if exists_metric:
-                exist_counter += 1
-                print(
-                    f"[/] Skip parameter {parameter} exists for station ({code})-{station.name_th} at {timestamp}"
+                # Now check if this metric already exists in MongoDB
+                exists_metric = await models.Metric.find_one(
+                    models.Metric.timestamp == timestamp,
+                    models.Metric.metadata["station"]["$id"] == station.id,
+                    models.Metric.metadata["parameter"] == parameter,
+                ).exists()
+
+                if exists_metric:
+                    exist_counter += 1
+                    print(
+                        f"[/] Skip parameter {parameter} exists for station ({station_code})-{station.name_th} at {timestamp}"
+                    )
+                    continue
+
+                # Construct enriched metadata dictionary
+                metadata = dict(
+                    source="rid",
+                    station=DBRef("stations", station.id),
+                    station_code=station_code,
+                    created_date=datetime.datetime.now(datetime.timezone.utc),
+                    parameter=parameter,
                 )
-                continue
 
-            # Construct enriched metadata dictionary
-            metadata = dict(
-                source=source,
-                station=DBRef("stations", station.id),
-                station_code=code,
-                created_date=datetime.datetime.now(datetime.timezone.utc),
-                parameter=parameter,
-                cross_section=cross_section,
-                zerogate=zerogate,
-                water_level_warning=water_level_warning,
-                water_level_critical=water_level_critical,
-                # Store raw fields in metadata
-                water_level=raw_water_level,
-                water_level_value_list=raw_water_level_value_list,
-                rain_sum_now=raw_rain_sum_now,
-                rain_sum=raw_rain_sum,
-            )
+                metric = models.Metric(
+                    timestamp=timestamp, value=value, metadata=metadata
+                )
 
-            metric = models.Metric(
-                timestamp=timestamp, value=value, metadata=metadata
-            )
-
-            metrics_to_save.append(metric)
+                metrics_to_save.append(metric)
 
     if metrics_to_save:
         await models.Metric.insert_many(metrics_to_save)

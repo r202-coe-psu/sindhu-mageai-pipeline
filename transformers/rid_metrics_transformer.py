@@ -96,64 +96,42 @@ def transform(data, *args, **kwargs):
             for cs in cross_section:
                 cs.pop("gauge", None)
 
-        # 5. Gather metrics and metadata
+        # 5. Extract water_level_warning and water_level_critical
+        water_level_warning = d.get("water_level_warning")
+        if water_level_warning is not None and water_level_warning != "-":
+            try:
+                water_level_warning = float(water_level_warning)
+            except ValueError:
+                water_level_warning = None
+        else:
+            water_level_warning = None
+
+        water_level_critical = d.get("water_level_critical")
+        if water_level_critical is not None and water_level_critical != "-":
+            try:
+                water_level_critical = float(water_level_critical)
+            except ValueError:
+                water_level_critical = None
+        else:
+            water_level_critical = None
+
+        # 6. Calculate diff_wl_bank
+        diff_wl_bank = None
+        if wl_up is not None and water_level_critical is not None:
+            diff_wl_bank = wl_up - water_level_critical
+
+        # 7. Gather metrics and metadata
         attribute_outputs = []
 
-        # Parameter 1: water_level
-        if wl_up is not None:
+        if wl_up is not None or water_level_warning is not None or water_level_critical is not None or diff_wl_bank is not None:
             attribute_outputs.append({
                 "code": code,
                 "source": "rid",
-                "waterlevel_datetime": waterlevel_datetime,
-                "parameter_name": "water_level",
-                "parameter_value": wl_up,
-                # Metadata
-                "cross_section": cross_section,
-                "zerogate": d.get("zerogate"),
-                "water_level_warning": d.get("water_level_warning"),
-                "water_level_critical": d.get("water_level_critical"),
-                "raw_water_level": raw_water_level,
-                "raw_water_level_value_list": raw_water_level_value_list,
-                "raw_rain_sum_now": raw_rain_sum_now,
-                "raw_rain_sum": raw_rain_sum,
-            })
-
-        # Parameter 2: wl_down
-        if wl_down is not None:
-            attribute_outputs.append({
-                "code": code,
-                "source": "rid",
-                "waterlevel_datetime": waterlevel_datetime,
-                "parameter_name": "wl_down",
-                "parameter_value": wl_down,
-                # Metadata
-                "cross_section": cross_section,
-                "zerogate": d.get("zerogate"),
-                "water_level_warning": d.get("water_level_warning"),
-                "water_level_critical": d.get("water_level_critical"),
-                "raw_water_level": raw_water_level,
-                "raw_water_level_value_list": raw_water_level_value_list,
-                "raw_rain_sum_now": raw_rain_sum_now,
-                "raw_rain_sum": raw_rain_sum,
-            })
-
-        # Parameter 3: rain_sum_now
-        if rf is not None:
-            attribute_outputs.append({
-                "code": code,
-                "source": "rid",
-                "waterlevel_datetime": waterlevel_datetime,
-                "parameter_name": "rain_sum_now",
-                "parameter_value": rf,
-                # Metadata
-                "cross_section": cross_section,
-                "zerogate": d.get("zerogate"),
-                "water_level_warning": d.get("water_level_warning"),
-                "water_level_critical": d.get("water_level_critical"),
-                "raw_water_level": raw_water_level,
-                "raw_water_level_value_list": raw_water_level_value_list,
-                "raw_rain_sum_now": raw_rain_sum_now,
-                "raw_rain_sum": raw_rain_sum,
+                "waterlevel_datetime": waterlevel_datetime.isoformat(),
+                "waterlevel": wl_up,
+                "water_critical_level": water_level_critical,
+                "water_warning_level": water_level_warning,
+                "diff_wl_bank": diff_wl_bank,
             })
 
         if attribute_outputs:
