@@ -19,6 +19,7 @@ def transform(data, *args, **kwargs):
         geocode = d.get("geocode", {})
         province_name_th = geocode.get("province_name", {}).get("th", "").strip()
         province_name_en = geocode.get("province_name", {}).get("en", "").strip().lower()
+        province_code = geocode.get("province_code", "").strip()
 
         TARGET_PROVINCES = ["สงขลา", "songkhla"]
 
@@ -40,6 +41,15 @@ def transform(data, *args, **kwargs):
             url = station.get("url", "https://thaiwater.net").strip()
             source = "thaiwater"
 
+            min_bank = station.get("min_bank")
+            critical_level_m = station.get("critical_level_m")
+            warning_level_m = station.get("warning_level_m")
+            
+            water_level_critical = critical_level_m if critical_level_m is not None else min_bank
+            water_level_warning = warning_level_m
+            if water_level_warning is None and water_level_critical is not None:
+                water_level_warning = water_level_critical * 0.8
+
             tumbon_code = geocode.get("tumbon_code", "").strip()
             tumbon_name = geocode.get("tumbon_name", {})
             tumbon_name_en = tumbon_name.get("en", "").strip()
@@ -60,6 +70,8 @@ def transform(data, *args, **kwargs):
                     "latitude": latitude,
                     "url": url,
                     "source": source,
+                    "water_level_critical": water_level_critical,
+                    "water_level_warning": water_level_warning,
                     "tumbon_code": tumbon_code,
                     "tumbon_name_en": tumbon_name_en,
                     "tumbon_name_th": tumbon_name_th,

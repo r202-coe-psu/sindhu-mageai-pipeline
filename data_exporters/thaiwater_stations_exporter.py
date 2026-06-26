@@ -44,6 +44,9 @@ async def insert_data(stations):
             province_code = data.pop("province_code", None)
             province_name_en = data.pop("province_name_en", None)
             province_name_th = data.pop("province_name_th", None)
+            
+            water_level_critical = data.pop("water_level_critical", None)
+            water_level_warning = data.pop("water_level_warning", None)
 
             # Filtering is already handled in Transformer
 
@@ -57,6 +60,8 @@ async def insert_data(stations):
                 province_code=province_code,
                 province_name_en=province_name_en,
                 province_name_th=province_name_th,
+                water_level_critical=water_level_critical,
+                water_level_warning=water_level_warning,
             )
 
             # ตรวจสอบสถานีเดิมในระบบจาก code และ source

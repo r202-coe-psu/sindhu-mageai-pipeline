@@ -129,14 +129,12 @@ def transform(data, *args, **kwargs):
         # 7. Gather metrics and metadata
         attribute_outputs = []
 
-        if wl_up is not None or water_level_warning is not None or water_level_critical is not None or diff_wl_bank is not None:
+        if wl_up is not None or diff_wl_bank is not None:
             attribute_outputs.append({
                 "code": code,
                 "source": "rid",
                 "waterlevel_datetime": waterlevel_datetime.isoformat(),
                 "waterlevel": wl_up,
-                "water_critical_level": water_level_critical,
-                "water_warning_level": water_level_warning,
                 "diff_wl_bank": diff_wl_bank,
             })
 

@@ -47,6 +47,14 @@ async def insert_data(metrics_stations):
             # แปลงค่ากลับเป็น datetime object สำหรับบันทึกพิกัดเวลา (Timestamp)
             timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
 
+            # Fallback Imputation for diff_wl_bank
+            waterlevel = data.get("waterlevel")
+            diff_wl_bank = data.get("diff_wl_bank")
+            if diff_wl_bank is None and waterlevel is not None:
+                water_level_critical = station.metadata.get("water_level_critical")
+                if water_level_critical is not None:
+                    data["diff_wl_bank"] = waterlevel - water_level_critical
+
             for parameter, value in data.items():
                 if value is None:
                     continue

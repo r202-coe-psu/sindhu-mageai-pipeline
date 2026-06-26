@@ -54,26 +54,15 @@ def transform(data, *args, **kwargs):
 
         if waterlevel_m:
             waterlevel_m = float(waterlevel_m)
-        if waterlevel_msl:
-            waterlevel_msl = float(waterlevel_msl)
-        if discharge:
-            discharge = float(discharge)
-        if flow_rate:
-            flow_rate = float(flow_rate)
 
         attribute_outputs.append(
             {
                 "code": code,
                 "name_th": name_th,
                 "source": source,
-                # ส่งค่าวันเวลาในรูปแบบ ISO String ไปให้ Exporter
                 "waterlevel_datetime": waterlevel_datetime.isoformat(), 
-                "waterlevel_m": waterlevel_m,
-                "waterlevel_msl": waterlevel_msl,
+                "waterlevel": waterlevel_m,
                 "diff_wl_bank": diff_wl_bank,
-                "storage_percent": storage_percent,
-                "discharge": discharge,
-                "flow_rate": flow_rate,
             }
         )
 

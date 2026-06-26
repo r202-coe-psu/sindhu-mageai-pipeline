@@ -112,14 +112,21 @@ def map_station_data(item):
         try:
             water_level_warning = float(water_level_warning)
         except ValueError:
-            pass
+            water_level_warning = None
+    else:
+        water_level_warning = None
 
     water_level_critical = item.get("water_level_critical")
     if water_level_critical is not None and water_level_critical != "-":
         try:
             water_level_critical = float(water_level_critical)
         except ValueError:
-            pass
+            water_level_critical = None
+    else:
+        water_level_critical = None
+
+    if water_level_warning is None and water_level_critical is not None:
+        water_level_warning = water_level_critical * 0.8
 
     return {
         "station": {
