@@ -87,9 +87,7 @@ def transform(data, *args, **kwargs):
         if not code:
             continue
 
-        wl_raw   = to_float(d.get("currWaterLevelValue"))
-        rf24_raw = to_float(d.get("currRainfallValue"))
-        fr_raw   = to_float(d.get("currFlowRateValue"))
+        wl_raw = to_float(d.get("currWaterLevelValue"))
 
         ts_raw = (d.get("currWlTimestamp")
                   or d.get("currRfTimestamp")
@@ -116,14 +114,16 @@ def transform(data, *args, **kwargs):
         diff_wl_bank = (round(wl_raw - bank_msl, 4)
                         if wl_raw is not None and bank_msl is not None else None)
 
+        zflow_msl = thresh.get("zflowMsl")
+        waterlevel = (round(wl_raw - zflow_msl, 4)
+                      if wl_raw is not None and zflow_msl is not None else None)
+
         record = {
             "code":                code,
             "name_th":             name_th,
             "source":              source,
             "waterlevel_datetime": waterlevel_datetime,
-            "waterlevel_msl":      wl_raw,
-            "flow_rate":           fr_raw,
-            "rainfall_24h":        rf24_raw,
+            "waterlevel":          waterlevel,
             "diff_wl_bank":        diff_wl_bank,
             "lbMsl":    lb,
             "rbMsl":    rb,
