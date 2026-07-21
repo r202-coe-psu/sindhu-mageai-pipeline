@@ -22,7 +22,9 @@ async def insert_data(metrics_stations):
     for code, metrics_station in metrics_stations.items():
         station = (
             await models.Station.find(
-                models.Station.status == "active", models.Station.code == code
+                models.Station.status == "active",
+                models.Station.code == code,
+                models.Station.source == source,
             )
             .sort(-models.Station.updated_date)
             .first_or_none()

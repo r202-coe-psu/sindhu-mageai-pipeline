@@ -24,8 +24,9 @@ async def insert_data(metrics_stations):
         # 🎯 จุดแก้ไขสำคัญ: ค้นหาเฉพาะสถานีที่ระบุในฐานข้อมูลว่าอยู่จังหวัด "สงขลา" เท่านั้น
         station = (
             await models.Station.find(
-                models.Station.status == "active", 
-                models.Station.code == code
+                models.Station.status == "active",
+                models.Station.code == code,
+                models.Station.source == source,
             )
             .sort(-models.Station.updated_date)
             .first_or_none()

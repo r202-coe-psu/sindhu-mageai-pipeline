@@ -52,7 +52,8 @@ def transform(data, *args, **kwargs):
             try:
                 unixtime = float(unixtime)
             except (TypeError, ValueError):
-                unixtime = datetime.now().timestamp()
+                print(f"(stn: {code}) ไม่มี timestamp ข้าม")
+                continue
 
         tz_thailand = pytz.timezone('Asia/Bangkok')
         waterlevel_datetime = datetime.fromtimestamp(unixtime, tz=tz_thailand)
