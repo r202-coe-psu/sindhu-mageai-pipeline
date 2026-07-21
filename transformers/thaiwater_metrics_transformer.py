@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 
+PROVINCE_CODE = "90"
+
 
 @transformer
 def transform(data, *args, **kwargs):
@@ -14,6 +16,10 @@ def transform(data, *args, **kwargs):
     for i, d in enumerate(data):
         attribute_outputs = []
         
+        geocode = d.get("geocode") or {}
+        if str(geocode.get("province_code", "")).strip() != PROVINCE_CODE:
+            continue
+
         station = d.get("station", {})
         if not station:
             continue
