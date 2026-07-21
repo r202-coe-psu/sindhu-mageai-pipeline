@@ -4,6 +4,33 @@ from datetime import datetime
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 
+# RID รายงานเซ็นเซอร์ที่ตายด้วยค่าคงที่แทน null ถ้าปล่อยผ่านจะกลายเป็น
+# diff_wl_bank ติดลบมหาศาล ซึ่งระบบจะอ่านว่า "น้ำต่ำกว่าตลิ่งมาก = ปลอดภัย"
+# ทั้งที่ความจริงคือไม่มีข้อมูล
+WATER_LEVEL_SENTINELS = (-9.99, -999.0)
+WATER_LEVEL_FLOOR = -50.0
+
+
+def parse_water_level(val, code):
+    """แปลงค่าระดับน้ำเป็น float คืน None ถ้าไม่มีข้อมูลหรือเป็นค่า sentinel"""
+    if val is None or (isinstance(val, str) and val.strip() in ("", "-")):
+        return None
+
+    try:
+        level = float(val)
+    except (TypeError, ValueError):
+        return None
+
+    if any(abs(level - sentinel) < 1e-6 for sentinel in WATER_LEVEL_SENTINELS):
+        print(f"(stn: {code}) ระดับน้ำ {level} เป็นค่า sentinel เซ็นเซอร์ไม่ส่งข้อมูล ข้าม")
+        return None
+
+    if level < WATER_LEVEL_FLOOR:
+        print(f"(stn: {code}) ระดับน้ำ {level} ต่ำผิดปกติเกินจริง ข้าม")
+        return None
+
+    return level
+
 
 @transformer
 def transform(data, *args, **kwargs):
@@ -63,29 +90,14 @@ def transform(data, *args, **kwargs):
         wl_down = None
 
         if raw_water_level_value_list and len(raw_water_level_value_list) > 0:
-            try:
-                val0 = raw_water_level_value_list[0]
-                if val0 and val0 != "-":
-                    wl_up = float(val0)
-            except ValueError:
-                pass
+            wl_up = parse_water_level(raw_water_level_value_list[0], code)
 
         if raw_water_level_value_list and len(raw_water_level_value_list) > 1:
-            try:
-                val1 = raw_water_level_value_list[1]
-                if val1 and val1 != "-":
-                    wl_down = float(val1)
-            except ValueError:
-                pass
+            wl_down = parse_water_level(raw_water_level_value_list[1], code)
 
         # Fallback to single water_level value for wl_up
-        if wl_up is None and raw_water_level and raw_water_level.get("value") is not None:
-            try:
-                val_val = raw_water_level.get("value")
-                if val_val and val_val != "-":
-                    wl_up = float(val_val)
-            except ValueError:
-                pass
+        if wl_up is None and raw_water_level:
+            wl_up = parse_water_level(raw_water_level.get("value"), code)
 
         # 3. Extract Rainfall (rain_sum_now)
         rf = None
