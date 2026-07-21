@@ -21,7 +21,7 @@ async def insert_data(metrics_stations):
     exist_counter = 0
 
     for code, metrics_station in metrics_stations.items():
-        # 🎯 จุดแก้ไขสำคัญ: ค้นหาเฉพาะสถานีที่ระบุในฐานข้อมูลว่าอยู่จังหวัด "สงขลา" เท่านั้น
+        # ค้นหา station ด้วย code + source (การกรองจังหวัดทำที่ transformer แล้ว)
         station = (
             await models.Station.find(
                 models.Station.status == "active",
@@ -32,12 +32,11 @@ async def insert_data(metrics_stations):
             .first_or_none()
         )
         
-        # 🛑 ถ้าไม่พบสถานีในจังหวัดสงขลา (เช่น เป็นสถานีจังหวัดอื่นที่มีอยู่เก่าใน DB) ให้ Skip ข้ามไปทันที
+        # ยังไม่มี station ของ source นี้ใน DB ให้ข้าม (ต้องรัน thaiwater_stations ก่อน)
         if not station:
             continue
 
-        # แสดง Log เฉพาะสถานีในจังหวัดสงขลาจริงๆ
-        print(f"[>] Processing metrics for Songkhla Station: {code} - {metrics_station[0]['name_th']}")
+        print(f"[>] Processing metrics for station: {code} - {metrics_station[0]['name_th']}")
 
         for data in metrics_station:
             station_code = data.pop("code")
