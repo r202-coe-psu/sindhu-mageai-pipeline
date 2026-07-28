@@ -106,7 +106,7 @@ def transform(data, *args, **kwargs):
             "code":    code,
             "name":    meta.get("name_en") or name_th,
             "name_th": name_th,
-            "source":  "dwr_telemetry",
+            "source":  "dwr",
             "url":     f"{BASE}/home?stnCode={code}",
             "status":  "active",
             "lat": lat,

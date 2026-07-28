@@ -9,7 +9,7 @@ nest_asyncio.apply()
 if "data_exporter" not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
-SOURCE = "dwr_telemetry"
+SOURCE = "dwr"
 
 
 async def insert_data(stations):

@@ -82,7 +82,7 @@ def transform(data, *args, **kwargs):
 
         code    = str(d.get("code", "")).strip()
         name_th = str(d.get("nameTh", "")).strip()
-        source  = "dwr_telemetry"
+        source  = "dwr"
 
         if not code:
             continue
