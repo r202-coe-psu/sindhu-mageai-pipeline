@@ -51,6 +51,7 @@ async def insert_data(stations):
             # Filtering is already handled in Transformer
 
             metadata = dict(
+                station_type=station_type,
                 tumbon_code=tumbon_code,
                 tumbon_name_en=tumbon_name_en,
                 tumbon_name_th=tumbon_name_th,
@@ -81,7 +82,7 @@ async def insert_data(stations):
                 exists_name_th_station.code = station_code
                 exists_name_th_station.source = source
                 exists_name_th_station.url = url
-                exists_name_th_station.metadata = metadata
+                exists_name_th_station.station_metadata = metadata
                 exists_name_th_station.coordinates = bases.GeoObject(
                     coordinates=[longitude, latitude]
                 )
@@ -100,7 +101,7 @@ async def insert_data(stations):
                 code=station_code,
                 source=source,
                 url=url,
-                metadata=metadata,
+                station_metadata=metadata,
                 coordinates=bases.GeoObject(coordinates=[longitude, latitude]),
                 created_date=created_date,
                 updated_date=updated_date,
