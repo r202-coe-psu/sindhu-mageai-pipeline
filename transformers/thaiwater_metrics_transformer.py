@@ -6,6 +6,8 @@ if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 
 PROVINCE_CODE = "90"
+# API returns Thai local time without an offset
+TZ_THAILAND = pytz.timezone("Asia/Bangkok")
 
 
 @transformer
@@ -41,7 +43,9 @@ def transform(data, *args, **kwargs):
         # แปลง string วันเวลาจาก API เป็น datetime object
         if waterlevel_datetime_str:
             try:
-                waterlevel_datetime = datetime.strptime(waterlevel_datetime_str, "%Y-%m-%d %H:%M")
+                waterlevel_datetime = TZ_THAILAND.localize(
+                    datetime.strptime(waterlevel_datetime_str, "%Y-%m-%d %H:%M")
+                )
             except Exception as e:
                 print(f"Error parsing datetime for station {code}: {e}")
                 continue
