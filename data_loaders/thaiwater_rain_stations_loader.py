@@ -16,7 +16,7 @@ if 'test' not in globals():
 nest_asyncio.apply()
 
 async def test_thaiwater_api():
-    url = "https://api-v3.thaiwater.net/api/v1/thaiwater30/provinces/waterlevel"
+    url = "https://api-v3.thaiwater.net/api/v1/thaiwater30/public/rain_24h"
 
     print(f"กำลังยิง API ไปที่: {url} ...")
 
@@ -31,7 +31,7 @@ async def test_thaiwater_api():
             records = data.get("data") if isinstance(data, dict) else data
             if isinstance(records, list) and len(records) > 0:
                 # print(json.dumps(records[0], ensure_ascii=False, indent=2))
-                print(f"\n✅ ดึงข้อมูลสำเร็จ! มีข้อมูลทั้งหมด {len(records)} จังหวัด/สถานี")
+                print(f"\n✅ ดึงข้อมูลสำเร็จ! มีข้อมูลทั้งหมด {len(records)} สถานี")
             else:
                 # print(json.dumps(data, ensure_ascii=False, indent=2))
                 print(f"\n✅ ดึงข้อมูลสำเร็จ! มีข้อมูลทั้งหมด {len(records) if records is not None else 0} รายการ")
@@ -48,5 +48,3 @@ async def test_thaiwater_api():
 def load_data_from_api(*args, **kwargs):
     results = asyncio.run(test_thaiwater_api())
     return results
-
-

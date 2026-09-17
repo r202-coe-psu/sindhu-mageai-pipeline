@@ -2,61 +2,61 @@ blocks:
 - all_upstream_blocks_executed: true
   color: null
   configuration:
-    file_path: data_loaders/thaiwater_metrics_loader.py
+    file_path: data_loaders/thaiwater_rain_metrics_loader.py
     file_source:
-      path: data_loaders/thaiwater_metrics_loader.py
+      path: data_loaders/thaiwater_rain_metrics_loader.py
   downstream_blocks:
-  - thaiwater_metrics_transformer
+  - thaiwater_rain_metrics_transformer
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: thaiwater_metrics_loader
+  name: thaiwater_rain_metrics_loader
   retry_config: null
   status: executed
   timeout: null
   type: data_loader
   upstream_blocks: []
-  uuid: thaiwater_metrics_loader
+  uuid: thaiwater_rain_metrics_loader
 - all_upstream_blocks_executed: true
   color: null
   configuration:
-    file_path: transformers/thaiwater_metrics_transformer.py
+    file_path: transformers/thaiwater_rain_metrics_transformer.py
     file_source:
-      path: transformers/thaiwater_metrics_transformer.py
+      path: transformers/thaiwater_rain_metrics_transformer.py
   downstream_blocks:
-  - thaiwater_metrics_exporter
+  - thaiwater_rain_metrics_exporter
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: thaiwater_metrics_transformer
+  name: thaiwater_rain_metrics_transformer
   retry_config: null
   status: executed
   timeout: null
   type: transformer
   upstream_blocks:
-  - thaiwater_metrics_loader
-  uuid: thaiwater_metrics_transformer
+  - thaiwater_rain_metrics_loader
+  uuid: thaiwater_rain_metrics_transformer
 - all_upstream_blocks_executed: true
   color: null
   configuration:
-    file_path: data_exporters/thaiwater_metrics_exporter.py
+    file_path: data_exporters/thaiwater_rain_metrics_exporter.py
     file_source:
-      path: data_exporters/thaiwater_metrics_exporter.py
+      path: data_exporters/thaiwater_rain_metrics_exporter.py
   downstream_blocks: []
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: thaiwater_metrics_exporter
+  name: thaiwater_rain_metrics_exporter
   retry_config: null
   status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:
-  - thaiwater_metrics_transformer
-  uuid: thaiwater_metrics_exporter
+  - thaiwater_rain_metrics_transformer
+  uuid: thaiwater_rain_metrics_exporter
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config:
@@ -65,14 +65,14 @@ concurrency_config:
   pipeline_run_limit: 1
   pipeline_run_limit_all_triggers: 1
 conditionals: []
-created_at: '2026-05-04 08:37:01.903417+00:00'
+created_at: '2026-09-17 14:42:44.591009+00:00'
 data_integration: null
 description: null
 executor_config: {}
 executor_count: 1
 executor_type: null
 extensions: {}
-name: thaiwater_metrics
+name: thaiwater_rain_metrics
 notification_config: {}
 remote_variables_dir: null
 retry_config: {}
@@ -82,6 +82,6 @@ settings:
 spark_config: {}
 tags: []
 type: python
-uuid: thaiwater_metrics
+uuid: thaiwater_rain_metrics
 variables_dir: /home/src/mage_data/sindhu
 widgets: []
