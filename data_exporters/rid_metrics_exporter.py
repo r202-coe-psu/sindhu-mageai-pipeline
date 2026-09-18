@@ -36,13 +36,14 @@ async def insert_data(metrics_stations):
         for data in metrics_station:
             station_code = data.pop("code")
             data_source = data.pop("source")
-            waterlevel_datetime = data.pop("waterlevel_datetime")
+            # ระดับน้ำใช้ waterlevel_datetime ส่วนฝนใช้ datetime
+            metric_datetime = data.pop("waterlevel_datetime", None)
+            metric_datetime = data.pop("datetime", metric_datetime)
 
-            # Process — waterlevel_datetime
-            if isinstance(waterlevel_datetime, str):
-                timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)
+            if isinstance(metric_datetime, str):
+                timestamp = datetime.datetime.fromisoformat(metric_datetime)
             else:
-                timestamp = waterlevel_datetime
+                timestamp = metric_datetime
 
             # Fallback Imputation for diff_wl_bank
             waterlevel = data.get("waterlevel")
