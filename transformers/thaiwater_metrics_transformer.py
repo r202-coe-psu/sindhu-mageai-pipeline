@@ -70,7 +70,7 @@ def transform(data, *args, **kwargs):
                 "code": code,
                 "name_th": name_th,
                 "source": source,
-                "waterlevel_datetime": waterlevel_datetime.isoformat(), 
+                "datetime": waterlevel_datetime.isoformat(), 
                 "waterlevel": waterlevel,
                 "diff_wl_bank": diff_wl_bank,
             }

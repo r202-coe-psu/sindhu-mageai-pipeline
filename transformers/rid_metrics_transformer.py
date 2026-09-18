@@ -202,7 +202,7 @@ def transform(data, *args, **kwargs):
             attribute_outputs.append({
                 "code": code,
                 "source": "rid",
-                "waterlevel_datetime": waterlevel_datetime.isoformat(),
+                "datetime": waterlevel_datetime.isoformat(),
                 "waterlevel": wl_up,
                 "diff_wl_bank": diff_wl_bank,
             })

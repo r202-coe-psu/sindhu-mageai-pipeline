@@ -27,7 +27,7 @@ async def insert_data(metrics_stations):
         "code",
         "source",
         "name_th",
-        "waterlevel_datetime",
+        "datetime",
         "status",
         "alert_max",
         "alert_min",
@@ -48,7 +48,7 @@ async def insert_data(metrics_stations):
         # 1. ดึงข้อมูลตัวชี้วัด (Metrics) ที่มีอยู่แล้วในฐานข้อมูลแบบเป็นกลุ่ม (Bulk fetch)
         valid_timestamps = []
         for d in metrics_station:
-            dt_str = d.get("waterlevel_datetime")
+            dt_str = d.get("datetime")
             if not dt_str:
                 continue
             try:
@@ -75,7 +75,7 @@ async def insert_data(metrics_stations):
             current_code = data.get("code")
             current_source = data.get("source", source)
             name_th = station.name_th or data.get("name_th", current_code)
-            waterlevel_datetime = data.get("waterlevel_datetime")
+            waterlevel_datetime = data.get("datetime")
 
             if not waterlevel_datetime:
                 continue

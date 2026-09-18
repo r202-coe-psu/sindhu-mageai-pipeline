@@ -122,7 +122,7 @@ def transform(data, *args, **kwargs):
             "code":                code,
             "name_th":             name_th,
             "source":              source,
-            "waterlevel_datetime": waterlevel_datetime,
+            "datetime":            waterlevel_datetime,
             "waterlevel":          waterlevel,
             "diff_wl_bank":        diff_wl_bank,
             "lbMsl":    lb,

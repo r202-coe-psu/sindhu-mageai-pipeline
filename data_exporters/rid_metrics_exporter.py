@@ -36,9 +36,7 @@ async def insert_data(metrics_stations):
         for data in metrics_station:
             station_code = data.pop("code")
             data_source = data.pop("source")
-            # ระดับน้ำใช้ waterlevel_datetime ส่วนฝนใช้ datetime
-            metric_datetime = data.pop("waterlevel_datetime", None)
-            metric_datetime = data.pop("datetime", metric_datetime)
+            metric_datetime = data.pop("datetime")
 
             if isinstance(metric_datetime, str):
                 timestamp = datetime.datetime.fromisoformat(metric_datetime)
