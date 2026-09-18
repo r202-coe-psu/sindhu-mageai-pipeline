@@ -42,7 +42,7 @@ async def insert_data(metrics_stations):
             station_code = data.pop("code")
             name_th = data.pop("name_th")
             data_source = data.pop("source")
-            waterlevel_datetime = data.pop("waterlevel_datetime")
+            waterlevel_datetime = data.pop("datetime")
 
             # แปลงค่ากลับเป็น datetime object สำหรับบันทึกพิกัดเวลา (Timestamp)
             timestamp = datetime.datetime.fromisoformat(waterlevel_datetime)

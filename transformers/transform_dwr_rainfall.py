@@ -48,7 +48,7 @@ def transform(data, *args, **kwargs):
             "code": code,
             "name_th": station_info.get("stationName", ""),
             "source": "dwr",
-            "waterlevel_datetime": measure_time,
+            "datetime": measure_time,
             "rain": rain_float,
         }
         

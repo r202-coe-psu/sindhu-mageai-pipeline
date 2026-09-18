@@ -48,7 +48,7 @@ async def insert_data(metrics_stations):
             station_code        = data.pop("code")
             name_th             = data.pop("name_th")
             data_source         = data.pop("source")
-            waterlevel_datetime = data.pop("waterlevel_datetime")
+            waterlevel_datetime = data.pop("datetime")
 
             # pop threshold fields — ไม่เก็บเป็น metric
             for key in list(THRESHOLD_KEYS):

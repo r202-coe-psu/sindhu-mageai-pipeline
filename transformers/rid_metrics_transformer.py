@@ -1,5 +1,5 @@
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
@@ -9,6 +9,42 @@ if "transformer" not in globals():
 # ทั้งที่ความจริงคือไม่มีข้อมูล
 WATER_LEVEL_SENTINELS = (-9.99, -999.0)
 WATER_LEVEL_FLOOR = -50.0
+
+# วันฝนของ RID ตัดรอบที่ 07:00 (ตามเว็บ telerid)
+# rain_sum_now    = ฝนสะสมตั้งแต่ 07:00 วันนี้ถึงเวลาที่วัด
+# rain_sum[0]     = ฝนสะสม 24 ชม. (07:00 เมื่อวาน - 07:00 วันนี้)
+# rain_sum[1..6]  = ฝนสะสม 2-7 วัน สิ้นสุด 07:00 วันนี้
+TZ_THAILAND = pytz.timezone("Asia/Bangkok")
+RAIN_DAY_CUTOFF_HOUR = 7
+
+
+def parse_rain(val):
+    """แปลงค่าฝนเป็น float คืน None ถ้าไม่มีข้อมูลหรือติดลบ"""
+    if val is None or (isinstance(val, str) and val.strip() in ("", "-")):
+        return None
+    try:
+        rain = float(val)
+    except (TypeError, ValueError):
+        return None
+    return rain if rain >= 0 else None
+
+
+def first_unixtime(u):
+    if isinstance(u, list):
+        u = u[0] if u else None
+    try:
+        return float(u)
+    except (TypeError, ValueError):
+        return None
+
+
+def rain_day_end(unixtime):
+    """เวลา 07:00 ล่าสุดที่ไม่เกิน unixtime คือจุดสิ้นสุดของรอบฝน 24 ชม."""
+    dt = datetime.fromtimestamp(unixtime, tz=TZ_THAILAND)
+    end = dt.replace(hour=RAIN_DAY_CUTOFF_HOUR, minute=0, second=0, microsecond=0)
+    if end > dt:
+        end -= timedelta(days=1)
+    return end
 
 
 def parse_water_level(val, code):
@@ -99,15 +135,35 @@ def transform(data, *args, **kwargs):
         if wl_up is None and raw_water_level:
             wl_up = parse_water_level(raw_water_level.get("value"), code)
 
-        # 3. Extract Rainfall (rain_sum_now)
-        rf = None
-        if raw_rain_sum_now and raw_rain_sum_now.get("value") is not None:
-            try:
-                val_val = raw_rain_sum_now.get("value")
-                if val_val and val_val != "-":
-                    rf = float(val_val)
-            except ValueError:
-                pass
+        # 3. Extract Rainfall (เฉพาะสถานีที่มีเครื่องวัดฝน)
+        has_rain_gauge = (d.get("measure") or {}).get("r", True)
+
+        rain_now = None
+        rain_now_datetime = None
+        if has_rain_gauge and raw_rain_sum_now:
+            rain_now = parse_rain(raw_rain_sum_now.get("value"))
+            rain_now_unixtime = first_unixtime(raw_rain_sum_now.get("unixtime"))
+            if rain_now is not None and rain_now_unixtime:
+                rain_now_datetime = datetime.fromtimestamp(rain_now_unixtime, tz=TZ_THAILAND)
+            else:
+                rain_now = None
+
+        rain_24h = None
+        rain_24h_datetime = None
+        if has_rain_gauge and raw_rain_sum:
+            rain_sum_values = raw_rain_sum.get("value") or []
+            rain_sum_unixtime = first_unixtime(raw_rain_sum.get("unixtime"))
+            # unixtime ของ rain_sum คือเวลาที่ server สร้าง snapshot ไม่ใช่เวลาที่สถานีส่งข้อมูล
+            # ถ้าสถานีส่งข้อมูลล่าสุดก่อนปิดรอบ 07:00 แปลว่ารอบนั้นข้อมูลไม่ครบ ไม่บันทึก
+            last_reading_unixtime = first_unixtime((raw_rain_sum_now or {}).get("unixtime"))
+            if rain_sum_values and rain_sum_unixtime:
+                # ประทับเวลาที่ปลายรอบ (07:00) ค่าเดิมจะได้ไม่ถูกบันทึกซ้ำทุกรอบที่รัน
+                day_end = rain_day_end(rain_sum_unixtime)
+                if last_reading_unixtime and last_reading_unixtime >= day_end.timestamp():
+                    rain_24h = parse_rain(rain_sum_values[0])
+                    rain_24h_datetime = day_end
+                else:
+                    print(f"(stn: {code}) ไม่มีข้อมูลหลัง {day_end.isoformat()} ฝน 24 ชม. ไม่ครบรอบ ข้าม")
 
         # 4. Clean cross_section (remove gauge)
         cross_section = d.get("cross_section")
@@ -146,9 +202,25 @@ def transform(data, *args, **kwargs):
             attribute_outputs.append({
                 "code": code,
                 "source": "rid",
-                "waterlevel_datetime": waterlevel_datetime.isoformat(),
+                "datetime": waterlevel_datetime.isoformat(),
                 "waterlevel": wl_up,
                 "diff_wl_bank": diff_wl_bank,
+            })
+
+        if rain_now is not None:
+            attribute_outputs.append({
+                "code": code,
+                "source": "rid",
+                "datetime": rain_now_datetime.isoformat(),
+                "rain": rain_now,
+            })
+
+        if rain_24h is not None:
+            attribute_outputs.append({
+                "code": code,
+                "source": "rid",
+                "datetime": rain_24h_datetime.isoformat(),
+                "rain_24h": rain_24h,
             })
 
         if attribute_outputs:
