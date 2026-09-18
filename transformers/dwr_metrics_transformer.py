@@ -60,7 +60,10 @@ def transform(data, *args, **kwargs):
                 "rain12h": to_float(rain12h),
                 "rain07h": to_float(rain07h),
                 "temp":    to_float(temp),
-                "wl":      to_float(wl),
+                # ชื่อ parameter ระดับน้ำต้องเป็น "waterlevel" ให้ตรงกับ RID/ThaiWater
+                # และที่ frontend รู้จัก (metric_colors / PRIMARY_METRIC_PREFERENCE)
+                # ค่าดิบจาก EWS คือ field "wl"
+                "waterlevel": to_float(wl),
                 "wl07h":   to_float(wl07h),
                 "soil":    to_float(soil),
                 "soil07h": to_float(soil07h),
